@@ -1,0 +1,6 @@
+{
+  "name": "MTG Proxy Master",
+  "description": "Herramienta profesional para organizar, previsualizar y exportar cartas MTG para impresión de alta calidad en hojas A4, Carta y Oficio con guías de corte precisas, modo foil holográfico con transparencias reales y corrección de negros profundos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
