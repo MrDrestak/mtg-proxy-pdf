@@ -1,10 +1,12 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { Upload, Trash2, Layout, Info, FileText, List } from 'lucide-react';
+import { Upload, Trash2, Layout, Info, FileText, List, Lock } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { CardImage, PageLayout } from './types';
 import { GRID, MM_TO_PX, PaperFormat, PAPER_SIZES } from './constants';
 import CardPreview from './components/CardPreview';
 import ListingDrawer from './components/ListingDrawer';
+import AdminLoginModal from './components/AdminLoginModal';
+import AdminPanel from './components/AdminPanel';
 import { generatePDF } from './services/pdfGenerator';
 import { processCardImageWithBlackCorners, ImageProcessOptions } from './services/imageProcessor';
 
@@ -28,6 +30,9 @@ const App: React.FC = () => {
   const [watermarkScale, setWatermarkScale] = useState(100);
   const [showWatermark, setShowWatermark] = useState(true);
   const [filterMode, setFilterMode] = useState<'all' | 'new'>('all');
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const ADMIN_PASSWORD = 'drestakmtg';
 
   const scaleX = useMemo(() => {
     if (!useCompensation) return 1.0;
@@ -175,6 +180,37 @@ const App: React.FC = () => {
     }
   };
 
+  const handleAdminLogin = (password: string): boolean => {
+    if (password === ADMIN_PASSWORD) {
+      setIsAdminLoggedIn(true);
+      setIsLoginModalOpen(false);
+      return true;
+    }
+    return false;
+  };
+
+  const handleAdminLogout = () => {
+    setIsAdminLoggedIn(false);
+  };
+
+  const handleAddCard = (card: CardImage) => {
+    setCards(prev => [...prev, card]);
+  };
+
+  const handleUpdateCard = (cardId: string, updates: Partial<CardImage>) => {
+    setCards(prev =>
+      prev.map(card =>
+        card.id === cardId ? { ...card, ...updates } : card
+      )
+    );
+  };
+
+  const handleWatermarkChange = (field: 'opacity' | 'scale' | 'show', value: number | boolean) => {
+    if (field === 'opacity') setWatermarkOpacity(value as number);
+    else if (field === 'scale') setWatermarkScale(value as number);
+    else if (field === 'show') setShowWatermark(value as boolean);
+  };
+
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       {/* Header */}
@@ -218,6 +254,14 @@ const App: React.FC = () => {
 
             {/* Actions */}
             <div className="flex items-center gap-2 w-full sm:w-auto">
+              <button
+                onClick={() => setIsLoginModalOpen(true)}
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 rounded-lg transition-colors border border-amber-500/30"
+              >
+                <Lock size={16} />
+                <span className="hidden sm:inline">Admin</span>
+              </button>
+
               <button
                 onClick={clearAll}
                 disabled={cards.length === 0}
@@ -528,6 +572,28 @@ const App: React.FC = () => {
         onClose={() => setIsListingOpen(false)}
         cards={filteredCards}
       />
+
+      {/* Admin Login Modal */}
+      <AdminLoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onLogin={handleAdminLogin}
+      />
+
+      {/* Admin Panel */}
+      {isAdminLoggedIn && (
+        <AdminPanel
+          cards={cards}
+          onAddCard={handleAddCard}
+          onRemoveCard={removeCard}
+          onUpdateCard={handleUpdateCard}
+          watermarkOpacity={watermarkOpacity}
+          watermarkScale={watermarkScale}
+          showWatermark={showWatermark}
+          onWatermarkChange={handleWatermarkChange}
+          onClose={handleAdminLogout}
+        />
+      )}
 
       {/* Footer */}
       <footer className="bg-slate-950/80 border-t border-blue-500/20 mt-auto py-4 text-center">
