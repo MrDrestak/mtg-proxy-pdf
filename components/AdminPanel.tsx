@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { X, Upload, Trash2, Edit2, Eye, EyeOff } from 'lucide-react';
 import { CardImage } from '../types';
-import { processImage } from '../imageProcessor';
+import { processImage } from '../services/imageProcessor';
 import CardPreview from './CardPreview';
 
 interface AdminPanelProps {
