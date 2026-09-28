@@ -386,8 +386,8 @@ const App: React.FC = () => {
 
         {/* Print Tab */}
         {activeTab === 'print' && (
-          <div className="space-y-8">
-            <div className="bg-gradient-to-br from-slate-900/50 to-blue-900/20 rounded-xl border border-blue-500/20 p-6">
+          <div className="space-y-6 sm:space-y-8">
+            <div className="bg-gradient-to-br from-slate-900/50 to-blue-900/20 rounded-xl border border-blue-500/20 p-4 sm:p-6">
               <h2 className="text-xl sm:text-2xl font-black text-white mb-6">Mesa de Corte e Impresión</h2>
 
               {cards.length === 0 ? (
@@ -402,108 +402,216 @@ const App: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {/* Paper Format */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {['a4', 'letter', 'legal'].map((fmt) => (
-                      <button
-                        key={fmt}
-                        onClick={() => setPaperFormat(fmt as PaperFormat)}
-                        className={`p-3 rounded-lg border-2 transition-all text-sm font-semibold ${
-                          paperFormat === fmt
-                            ? 'border-blue-500 bg-blue-500/20 text-blue-300'
-                            : 'border-slate-600 bg-slate-900/50 text-slate-300 hover:border-blue-500/50'
-                        }`}
-                      >
-                        {fmt === 'a4' && 'A4 (210×297mm)'}
-                        {fmt === 'letter' && 'Carta (215.9×279.4mm)'}
-                        {fmt === 'legal' && 'Oficio (21.5×33cm)'}
-                      </button>
-                    ))}
+                  {/* Paper Format - Mobile Optimized */}
+                  <div>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Formato de Papel</p>
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                      {[
+                        { key: 'a4', label: 'A4', dims: '210×297mm' },
+                        { key: 'letter', label: 'Carta', dims: '215.9×279.4mm' },
+                        { key: 'legal', label: 'Oficio', dims: '21.5×33cm' }
+                      ].map((fmt) => (
+                        <button
+                          key={fmt.key}
+                          onClick={() => setPaperFormat(fmt.key as PaperFormat)}
+                          className={`p-2 sm:p-3 rounded-lg border-2 transition-all text-xs sm:text-sm font-semibold ${
+                            paperFormat === fmt.key
+                              ? 'border-blue-500 bg-blue-500/20 text-blue-300'
+                              : 'border-slate-600 bg-slate-900/50 text-slate-300 hover:border-blue-500/50'
+                          }`}
+                        >
+                          <p className="font-bold">{fmt.label}</p>
+                          <p className="text-[10px] sm:text-xs text-slate-400 mt-1">{fmt.dims}</p>
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
-                  {/* Processing Options */}
-                  <div className="space-y-3">
-                    <label className="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg border border-slate-700 hover:border-blue-500/30 cursor-pointer transition-all">
+                  {/* Processing Options - Mobile Optimized */}
+                  <div>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Procesamiento</p>
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg border border-slate-700 hover:border-blue-500/30 cursor-pointer transition-all">
+                        <input
+                          type="checkbox"
+                          checked={fixRoundedCorners}
+                          onChange={(e) => toggleFixCorners(e.target.checked)}
+                          className="w-4 h-4 rounded accent-blue-500"
+                        />
+                        <div>
+                          <p className="text-sm font-semibold text-slate-300">Fondo negro en esquinas</p>
+                          <p className="text-xs text-slate-500">Rellena esquinas redondeadas para corte limpio</p>
+                        </div>
+                      </label>
+
+                      <label className="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg border border-slate-700 hover:border-blue-500/30 cursor-pointer transition-all">
+                        <input
+                          type="checkbox"
+                          checked={foilMode}
+                          onChange={(e) => toggleFoilMode(e.target.checked)}
+                          className="w-4 h-4 rounded accent-blue-500"
+                        />
+                        <div>
+                          <p className="text-sm font-semibold text-slate-300">Modo Holográfico (Foil)</p>
+                          <p className="text-xs text-slate-500">Optimiza transparencias para papel foil</p>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Foil Mode Options - Collapsible */}
+                  {foilMode && (
+                    <div className="p-4 bg-blue-900/20 rounded-lg border border-blue-500/30 space-y-4">
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="text-xs font-semibold text-slate-300">Nivel de Negro Profundo</label>
+                          <span className="text-xs font-mono bg-blue-600/30 text-blue-300 px-2 py-1 rounded">{deepBlackLevel}</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="70"
+                          step="5"
+                          value={deepBlackLevel}
+                          onChange={(e) => updateDeepBlack(Number(e.target.value))}
+                          className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                        />
+                        <p className="text-[10px] text-slate-500 mt-1">Mayor valor = negros más saturados</p>
+                      </div>
+
+                      <label className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={boostContrast}
+                          onChange={(e) => toggleContrast(e.target.checked)}
+                          className="w-4 h-4 rounded accent-blue-500"
+                        />
+                        <span className="text-sm font-semibold text-slate-300">Aumentar Contraste</span>
+                      </label>
+                    </div>
+                  )}
+
+                  {/* Compensation Options - Collapsible */}
+                  <div className="p-4 bg-amber-900/20 rounded-lg border border-amber-500/30 space-y-4">
+                    <label className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700 cursor-pointer hover:border-amber-500/50 transition-all">
                       <input
                         type="checkbox"
-                        checked={fixRoundedCorners}
-                        onChange={(e) => toggleFixCorners(e.target.checked)}
-                        className="w-4 h-4 rounded accent-blue-500"
+                        checked={useCompensation}
+                        onChange={(e) => setUseCompensation(e.target.checked)}
+                        className="w-4 h-4 rounded accent-amber-500"
                       />
-                      <span className="text-sm font-semibold text-slate-300">Fondo negro en esquinas</span>
+                      <div>
+                        <p className="text-sm font-semibold text-slate-300">Compensación de Impresión</p>
+                        <p className="text-xs text-slate-500">Ajusta para diferencias de escalado de impresora</p>
+                      </div>
                     </label>
 
-                    <label className="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg border border-slate-700 hover:border-blue-500/30 cursor-pointer transition-all">
-                      <input
-                        type="checkbox"
-                        checked={foilMode}
-                        onChange={(e) => toggleFoilMode(e.target.checked)}
-                        className="w-4 h-4 rounded accent-blue-500"
-                      />
-                      <span className="text-sm font-semibold text-slate-300">Modo Holográfico (Foil)</span>
-                    </label>
+                    {useCompensation && (
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-xs font-semibold text-slate-300 block mb-2">Preset</label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              onClick={() => setCompensationPreset('epson_l3250')}
+                              className={`p-2 rounded-lg text-xs font-semibold transition-all ${
+                                compensationPreset === 'epson_l3250'
+                                  ? 'bg-amber-600 text-white'
+                                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                              }`}
+                            >
+                              Epson L3250
+                            </button>
+                            <button
+                              onClick={() => setCompensationPreset('custom')}
+                              className={`p-2 rounded-lg text-xs font-semibold transition-all ${
+                                compensationPreset === 'custom'
+                                  ? 'bg-amber-600 text-white'
+                                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                              }`}
+                            >
+                              Personalizado
+                            </button>
+                          </div>
+                        </div>
+
+                        {compensationPreset === 'custom' && (
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-xs font-semibold text-slate-300 block mb-2">
+                                Ancho medido (mm): {measuredWidth.toFixed(1)}
+                              </label>
+                              <input
+                                type="range"
+                                min="50"
+                                max="70"
+                                step="0.5"
+                                value={measuredWidth}
+                                onChange={(e) => setMeasuredWidth(Number(e.target.value))}
+                                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs font-semibold text-slate-300 block mb-2">
+                                Alto medido (mm): {measuredHeight.toFixed(1)}
+                              </label>
+                              <input
+                                type="range"
+                                min="75"
+                                max="100"
+                                step="0.5"
+                                value={measuredHeight}
+                                onChange={(e) => setMeasuredHeight(Number(e.target.value))}
+                                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Watermark Controls */}
                   <div className="space-y-4 p-4 bg-slate-900/50 rounded-lg border border-blue-500/20">
-                    <div className="flex items-center justify-between mb-3">
-                      <label className="flex items-center gap-2 text-sm font-semibold text-slate-300">
-                        <input
-                          type="checkbox"
-                          checked={showWatermark}
-                          onChange={(e) => setShowWatermark(e.target.checked)}
-                          className="w-4 h-4 rounded accent-blue-500"
-                        />
-                        Mostrar Marca de Agua
-                      </label>
-                    </div>
+                    <label className="flex items-center gap-2 text-sm font-semibold text-slate-300 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={showWatermark}
+                        onChange={(e) => setShowWatermark(e.target.checked)}
+                        className="w-4 h-4 rounded accent-blue-500"
+                      />
+                      Mostrar Marca de Agua
+                    </label>
 
                     {showWatermark && (
-                      <div className="space-y-3">
-                        {/* Opacity Control */}
+                      <div className="space-y-4">
                         <div>
                           <div className="flex items-center justify-between mb-2">
                             <label className="text-xs font-semibold text-slate-400">Opacidad</label>
-                            <span className="text-xs font-mono bg-blue-600/30 text-blue-300 px-2 py-1 rounded">
-                              {watermarkOpacity}%
-                            </span>
+                            <span className="text-xs font-mono bg-blue-600/30 text-blue-300 px-2 py-1 rounded">{watermarkOpacity}%</span>
                           </div>
                           <input
                             type="range"
                             min="10"
                             max="85"
-                            step="5"
                             value={watermarkOpacity}
                             onChange={(e) => setWatermarkOpacity(Number(e.target.value))}
                             className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
                           />
-                          <div className="flex justify-between text-[10px] text-slate-500 mt-1">
-                            <span>10%</span>
-                            <span>85%</span>
-                          </div>
                         </div>
 
-                        {/* Scale Control */}
                         <div>
                           <div className="flex items-center justify-between mb-2">
                             <label className="text-xs font-semibold text-slate-400">Escala</label>
-                            <span className="text-xs font-mono bg-blue-600/30 text-blue-300 px-2 py-1 rounded">
-                              {watermarkScale}%
-                            </span>
+                            <span className="text-xs font-mono bg-blue-600/30 text-blue-300 px-2 py-1 rounded">{watermarkScale}%</span>
                           </div>
                           <input
                             type="range"
                             min="60"
                             max="150"
-                            step="10"
                             value={watermarkScale}
                             onChange={(e) => setWatermarkScale(Number(e.target.value))}
                             className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
                           />
-                          <div className="flex justify-between text-[10px] text-slate-500 mt-1">
-                            <span>60%</span>
-                            <span>150%</span>
-                          </div>
                         </div>
                       </div>
                     )}
@@ -513,7 +621,7 @@ const App: React.FC = () => {
                   <button
                     onClick={handleExportPDF}
                     disabled={isExporting || cards.length === 0}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-lg transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full flex items-center justify-center gap-2 px-4 sm:px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-lg transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                   >
                     <FileText size={18} />
                     {isExporting ? 'Generando PDF...' : 'Exportar PDF'}
@@ -522,27 +630,27 @@ const App: React.FC = () => {
               )}
             </div>
 
-            {/* Card Manager */}
+            {/* Card Manager - Mobile Optimized */}
             {cards.length > 0 && (
               <div className="bg-white/5 border border-blue-500/20 rounded-xl overflow-hidden">
                 <button
                   onClick={() => setIsManagerOpen(!isManagerOpen)}
-                  className="w-full px-6 py-4 flex items-center justify-between bg-slate-900/50 hover:bg-slate-900/70 transition-colors border-b border-blue-500/20"
+                  className="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between bg-slate-900/50 hover:bg-slate-900/70 transition-colors border-b border-blue-500/20"
                 >
-                  <span className="font-bold text-white">Administrador ({cards.length})</span>
+                  <span className="font-bold text-white text-sm sm:text-base">Administrador ({cards.length})</span>
                   <span className="text-xs text-blue-400">{isManagerOpen ? 'Ocultar' : 'Mostrar'}</span>
                 </button>
 
                 {isManagerOpen && (
-                  <div className="p-4 max-h-96 overflow-y-auto">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  <div className="p-3 sm:p-4 max-h-96 overflow-y-auto">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
                       {cards.map((card) => (
                         <div
                           key={card.id}
                           className="relative group cursor-pointer"
                           onClick={() => setSelectedCardId(card.id)}
                         >
-                          <div className="w-full aspect-[9/12] rounded-lg overflow-hidden bg-slate-800 border border-slate-700 hover:border-blue-500/50">
+                          <div className="w-full aspect-[63/88] rounded-lg overflow-hidden bg-slate-800 border border-slate-700 hover:border-blue-500/50">
                             <img src={card.dataUrl} alt={card.name} className="w-full h-full object-cover" />
                           </div>
                           <button
@@ -554,7 +662,7 @@ const App: React.FC = () => {
                           >
                             <Trash2 size={14} className="text-white" />
                           </button>
-                          <p className="text-xs mt-2 text-slate-300 font-semibold truncate">{card.name}</p>
+                          <p className="text-xs mt-1 sm:mt-2 text-slate-300 font-semibold truncate">{card.name}</p>
                         </div>
                       ))}
                     </div>
