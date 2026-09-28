@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { X, Upload, Trash2, Edit2, Eye, EyeOff } from 'lucide-react';
 import { CardImage } from '../types';
-import { processImage } from '../services/imageProcessor';
+import { fileToDataUrl } from '../services/imageProcessor';
 import CardPreview from './CardPreview';
 
 interface AdminPanelProps {
@@ -43,7 +43,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       try {
-        const dataUrl = await processImage(file);
+        const dataUrl = await fileToDataUrl(file);
         const newCard: CardImage = {
           id: Math.random().toString(36).substr(2, 9),
           name: file.name.replace(/\.[^/.]+$/, ''),
