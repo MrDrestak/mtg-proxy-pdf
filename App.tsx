@@ -1,9 +1,10 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { Upload, Trash2, Layout, Info, FileText } from 'lucide-react';
+import { Upload, Trash2, Layout, Info, FileText, List } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { CardImage, PageLayout } from './types';
 import { GRID, MM_TO_PX, PaperFormat, PAPER_SIZES } from './constants';
 import CardPreview from './components/CardPreview';
+import ListingDrawer from './components/ListingDrawer';
 import { generatePDF } from './services/pdfGenerator';
 import { processCardImageWithBlackCorners, ImageProcessOptions } from './services/imageProcessor';
 
@@ -22,6 +23,11 @@ const App: React.FC = () => {
   const [measuredHeight, setMeasuredHeight] = useState<number>(84.0);
   const [isManagerOpen, setIsManagerOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [isListingOpen, setIsListingOpen] = useState(false);
+  const [watermarkOpacity, setWatermarkOpacity] = useState(35);
+  const [watermarkScale, setWatermarkScale] = useState(100);
+  const [showWatermark, setShowWatermark] = useState(true);
+  const [filterMode, setFilterMode] = useState<'all' | 'new'>('all');
 
   const scaleX = useMemo(() => {
     if (!useCompensation) return 1.0;
@@ -127,12 +133,22 @@ const App: React.FC = () => {
     }
   };
 
+  // Filter cards based on mode
+  const filteredCards = useMemo(() => {
+    if (filterMode === 'new' && cards.length > 0) {
+      const now = new Date();
+      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      return cards.filter(card => card.createdAt && card.createdAt > oneDayAgo);
+    }
+    return cards;
+  }, [cards, filterMode]);
+
   const pages: PageLayout[] = useMemo(() => {
     const result: PageLayout[] = [];
     const pageSize = GRID.cols * GRID.rows;
 
-    for (let i = 0; i < cards.length; i += pageSize) {
-      const pageCards = cards.slice(i, i + pageSize);
+    for (let i = 0; i < filteredCards.length; i += pageSize) {
+      const pageCards = filteredCards.slice(i, i + pageSize);
       while (pageCards.length < pageSize) {
         (pageCards as any).push(null);
       }
@@ -147,7 +163,7 @@ const App: React.FC = () => {
     }
 
     return result;
-  }, [cards]);
+  }, [filteredCards]);
 
   const handleExportPDF = async () => {
     if (cards.length === 0) return;
@@ -243,12 +259,48 @@ const App: React.FC = () => {
               </div>
             ) : (
               <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl sm:text-2xl font-black text-white">Tu Galería</h2>
-                  <div className="flex items-center gap-2 text-sm text-slate-300">
-                    <span className="bg-blue-600 text-white px-3 py-1 rounded-full font-semibold">
-                      {cards.length} {cards.length === 1 ? 'Carta' : 'Cartas'}
-                    </span>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-black text-white">Tu Galería</h2>
+                    <p className="text-xs sm:text-sm text-slate-400 mt-1">
+                      {filteredCards.length} {filteredCards.length === 1 ? 'carta' : 'cartas'}
+                      {filterMode === 'new' && ' (últimas 24h)'}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                    {/* Filter */}
+                    <div className="flex items-center bg-slate-900/50 border border-blue-500/20 rounded-lg p-1">
+                      <button
+                        onClick={() => setFilterMode('all')}
+                        className={`px-3 py-1.5 text-sm font-semibold rounded-md transition-all ${
+                          filterMode === 'all'
+                            ? 'bg-blue-600 text-white'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        Todas
+                      </button>
+                      <button
+                        onClick={() => setFilterMode('new')}
+                        className={`px-3 py-1.5 text-sm font-semibold rounded-md transition-all ${
+                          filterMode === 'new'
+                            ? 'bg-blue-600 text-white'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        Recientes
+                      </button>
+                    </div>
+
+                    {/* Listing Drawer */}
+                    <button
+                      onClick={() => setIsListingOpen(!isListingOpen)}
+                      className="flex items-center gap-2 px-3 py-2 bg-slate-900/50 hover:bg-slate-800 border border-blue-500/20 text-slate-300 hover:text-white rounded-lg transition-all text-sm font-semibold"
+                    >
+                      <List size={16} />
+                      <span className="hidden sm:inline">Listado</span>
+                    </button>
                   </div>
                 </div>
 
@@ -273,6 +325,9 @@ const App: React.FC = () => {
                               card={card}
                               onRemove={card ? () => removeCard(card.id) : undefined}
                               foilMode={foilMode}
+                              showWatermark={showWatermark}
+                              watermarkOpacity={watermarkOpacity}
+                              watermarkScale={watermarkScale}
                             />
                           </div>
                         ))}
@@ -345,6 +400,71 @@ const App: React.FC = () => {
                     </label>
                   </div>
 
+                  {/* Watermark Controls */}
+                  <div className="space-y-4 p-4 bg-slate-900/50 rounded-lg border border-blue-500/20">
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="flex items-center gap-2 text-sm font-semibold text-slate-300">
+                        <input
+                          type="checkbox"
+                          checked={showWatermark}
+                          onChange={(e) => setShowWatermark(e.target.checked)}
+                          className="w-4 h-4 rounded accent-blue-500"
+                        />
+                        Mostrar Marca de Agua
+                      </label>
+                    </div>
+
+                    {showWatermark && (
+                      <div className="space-y-3">
+                        {/* Opacity Control */}
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <label className="text-xs font-semibold text-slate-400">Opacidad</label>
+                            <span className="text-xs font-mono bg-blue-600/30 text-blue-300 px-2 py-1 rounded">
+                              {watermarkOpacity}%
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min="10"
+                            max="85"
+                            step="5"
+                            value={watermarkOpacity}
+                            onChange={(e) => setWatermarkOpacity(Number(e.target.value))}
+                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                          />
+                          <div className="flex justify-between text-[10px] text-slate-500 mt-1">
+                            <span>10%</span>
+                            <span>85%</span>
+                          </div>
+                        </div>
+
+                        {/* Scale Control */}
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <label className="text-xs font-semibold text-slate-400">Escala</label>
+                            <span className="text-xs font-mono bg-blue-600/30 text-blue-300 px-2 py-1 rounded">
+                              {watermarkScale}%
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min="60"
+                            max="150"
+                            step="10"
+                            value={watermarkScale}
+                            onChange={(e) => setWatermarkScale(Number(e.target.value))}
+                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                          />
+                          <div className="flex justify-between text-[10px] text-slate-500 mt-1">
+                            <span>60%</span>
+                            <span>150%</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Export Button */}
                   <button
                     onClick={handleExportPDF}
@@ -401,6 +521,13 @@ const App: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Listing Drawer */}
+      <ListingDrawer
+        isOpen={isListingOpen}
+        onClose={() => setIsListingOpen(false)}
+        cards={filteredCards}
+      />
 
       {/* Footer */}
       <footer className="bg-slate-950/80 border-t border-blue-500/20 mt-auto py-4 text-center">
