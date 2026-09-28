@@ -1,12 +1,15 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Upload, Trash2, Layout, Info, FileText, List, Lock } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import { CardImage, PageLayout } from './types';
+import { CardImage, PageLayout, CardColor } from './types';
 import { GRID, MM_TO_PX, PaperFormat, PAPER_SIZES } from './constants';
 import CardPreview from './components/CardPreview';
 import ListingDrawer from './components/ListingDrawer';
 import AdminLoginModal from './components/AdminLoginModal';
 import AdminPanel from './components/AdminPanel';
+import CardZoomModal from './components/CardZoomModal';
+import WishlistCart from './components/WishlistCart';
+import GalleryFilters from './components/GalleryFilters';
 import { generatePDF } from './services/pdfGenerator';
 import { processCardImageWithBlackCorners, ImageProcessOptions } from './services/imageProcessor';
 
@@ -33,6 +36,15 @@ const App: React.FC = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const ADMIN_PASSWORD = 'drestakmtg';
+
+  // Gallery Pro States
+  const [zoomedCard, setZoomedCard] = useState<CardImage | null>(null);
+  const [isZoomOpen, setIsZoomOpen] = useState(false);
+  const [wishlistCards, setWishlistCards] = useState<CardImage[]>([]);
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedColors, setSelectedColors] = useState<CardColor[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const scaleX = useMemo(() => {
     if (!useCompensation) return 1.0;
@@ -211,6 +223,93 @@ const App: React.FC = () => {
     else if (field === 'show') setShowWatermark(value as boolean);
   };
 
+  // Wishlist handlers
+  const handleAddToWishlist = (card: CardImage) => {
+    setWishlistCards(prev => {
+      const exists = prev.find(c => c.id === card.id);
+      if (exists) return prev.filter(c => c.id !== card.id);
+      return [...prev, card];
+    });
+  };
+
+  const handleRemoveFromWishlist = (cardId: string) => {
+    setWishlistCards(prev => prev.filter(c => c.id !== cardId));
+  };
+
+  const handleCopyWishlist = () => {
+    const text = wishlistCards
+      .map(c => c.nickname ? `${c.name} | ${c.nickname}` : c.name)
+      .join('\n');
+    navigator.clipboard.writeText(text);
+  };
+
+  const handleDownloadWishlist = () => {
+    const text = wishlistCards
+      .map(c => c.nickname ? `${c.name} | ${c.nickname}` : c.name)
+      .join('\n');
+    const element = document.createElement('a');
+    element.setAttribute('href', `data:text/plain;charset=utf-8,${encodeURIComponent(text)}`);
+    element.setAttribute('download', 'mtg-proxy-labs-listado.txt');
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
+  const handleClearWishlist = () => {
+    if (confirm('¿Vaciar el listado completo?')) {
+      setWishlistCards([]);
+    }
+  };
+
+  // Filter logic
+  const filteredGalleryCards = useMemo(() => {
+    return cards.filter(card => {
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesSearch =
+          card.name.toLowerCase().includes(query) ||
+          card.nickname?.toLowerCase().includes(query);
+        if (!matchesSearch) return false;
+      }
+
+      // Color filter
+      if (selectedColors.length > 0) {
+        if (!card.colors || !selectedColors.some(c => card.colors?.includes(c))) {
+          return false;
+        }
+      }
+
+      // Tags filter
+      if (selectedTags.length > 0) {
+        if (!card.tags || !selectedTags.some(t => card.tags?.includes(t))) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [cards, searchQuery, selectedColors, selectedTags]);
+
+  const handleColorToggle = (color: CardColor) => {
+    setSelectedColors(prev =>
+      prev.includes(color) ? prev.filter(c => c !== color) : [...prev, color]
+    );
+  };
+
+  const handleTagToggle = (tag: string) => {
+    setSelectedTags(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
+  };
+
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setSelectedColors([]);
+    setSelectedTags([]);
+  };
+
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       {/* Header */}
@@ -302,83 +401,61 @@ const App: React.FC = () => {
                 </label>
               </div>
             ) : (
-              <div>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-                  <div>
-                    <h2 className="text-xl sm:text-2xl font-black text-white">Tu Galería</h2>
-                    <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                      {filteredCards.length} {filteredCards.length === 1 ? 'carta' : 'cartas'}
-                      {filterMode === 'new' && ' (últimas 24h)'}
-                    </p>
-                  </div>
+              <div className="space-y-8">
+                {/* Gallery Filters */}
+                <GalleryFilters
+                  cards={cards}
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  selectedColors={selectedColors}
+                  onColorToggle={handleColorToggle}
+                  selectedTags={selectedTags}
+                  onTagToggle={handleTagToggle}
+                  onClearFilters={handleClearFilters}
+                />
 
-                  <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                    {/* Filter */}
-                    <div className="flex items-center bg-slate-900/50 border border-blue-500/20 rounded-lg p-1">
-                      <button
-                        onClick={() => setFilterMode('all')}
-                        className={`px-3 py-1.5 text-sm font-semibold rounded-md transition-all ${
-                          filterMode === 'all'
-                            ? 'bg-blue-600 text-white'
-                            : 'text-slate-400 hover:text-white'
-                        }`}
-                      >
-                        Todas
-                      </button>
-                      <button
-                        onClick={() => setFilterMode('new')}
-                        className={`px-3 py-1.5 text-sm font-semibold rounded-md transition-all ${
-                          filterMode === 'new'
-                            ? 'bg-blue-600 text-white'
-                            : 'text-slate-400 hover:text-white'
-                        }`}
-                      >
-                        Recientes
-                      </button>
-                    </div>
-
-                    {/* Listing Drawer */}
-                    <button
-                      onClick={() => setIsListingOpen(!isListingOpen)}
-                      className="flex items-center gap-2 px-3 py-2 bg-slate-900/50 hover:bg-slate-800 border border-blue-500/20 text-slate-300 hover:text-white rounded-lg transition-all text-sm font-semibold"
-                    >
-                      <List size={16} />
-                      <span className="hidden sm:inline">Listado</span>
-                    </button>
-                  </div>
+                {/* Gallery Info */}
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-black text-white mb-2">Tu Galería</h2>
+                  <p className="text-xs sm:text-sm text-slate-400">
+                    {filteredGalleryCards.length} {filteredGalleryCards.length === 1 ? 'carta' : 'cartas'} de {cards.length}
+                  </p>
                 </div>
 
                 {/* Gallery Grid - 3x3 Album View */}
-                {pages.map((page) => (
-                  <div key={page.pageNumber} className="mb-12">
-                    <h3 className="text-xs sm:text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">
-                      Página {page.pageNumber}
-                    </h3>
-                    <div className="bg-white/5 border border-blue-500/20 rounded-xl p-6 sm:p-8">
-                      <div
-                        className="grid grid-cols-3 gap-4 sm:gap-6 auto-fit max-w-2xl mx-auto"
-                        style={{ gap: `${GRID.spacing * MM_TO_PX}px` }}
-                      >
-                        {page.cards.map((card, idx) => (
-                          <div
-                            key={card?.id || `empty-${page.pageNumber}-${idx}`}
-                            onClick={() => card && setSelectedCardId(card.id)}
-                            className="cursor-pointer transition-transform hover:scale-105"
-                          >
-                            <CardPreview
-                              card={card}
-                              onRemove={card ? () => removeCard(card.id) : undefined}
-                              foilMode={foilMode}
-                              showWatermark={showWatermark}
-                              watermarkOpacity={watermarkOpacity}
-                              watermarkScale={watermarkScale}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                {filteredGalleryCards.length === 0 ? (
+                  <div className="text-center py-12 bg-slate-900/30 rounded-xl border border-blue-500/20">
+                    <p className="text-slate-400">No hay cartas que coincidan con los filtros</p>
                   </div>
-                ))}
+                ) : (
+                  <div className="grid grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+                    {filteredGalleryCards.map((card) => (
+                      <div
+                        key={card.id}
+                        onClick={() => {
+                          setZoomedCard(card);
+                          setIsZoomOpen(true);
+                        }}
+                        className="cursor-pointer group"
+                      >
+                        <div className="relative rounded-lg overflow-hidden bg-black border border-blue-500/20 hover:border-blue-400/50 transition-all hover:shadow-lg hover:shadow-blue-500/20 transform hover:scale-105">
+                          <CardPreview
+                            card={card}
+                            showWatermark={showWatermark}
+                            watermarkOpacity={watermarkOpacity}
+                            watermarkScale={watermarkScale}
+                          />
+                        </div>
+                        <div className="mt-2 px-2">
+                          <p className="text-sm font-semibold text-white truncate group-hover:text-blue-300 transition-colors">{card.name}</p>
+                          {card.nickname && (
+                            <p className="text-xs text-amber-300 truncate">{card.nickname}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -702,6 +779,29 @@ const App: React.FC = () => {
           onClose={handleAdminLogout}
         />
       )}
+
+      {/* Card Zoom Modal */}
+      <CardZoomModal
+        card={zoomedCard}
+        isOpen={isZoomOpen}
+        onClose={() => setIsZoomOpen(false)}
+        onAddToList={handleAddToWishlist}
+        watermarkOpacity={watermarkOpacity}
+        watermarkScale={watermarkScale}
+        showWatermark={showWatermark}
+        isInList={zoomedCard ? wishlistCards.some(c => c.id === zoomedCard.id) : false}
+      />
+
+      {/* Wishlist Cart */}
+      <WishlistCart
+        cards={wishlistCards}
+        isOpen={isWishlistOpen}
+        onToggle={() => setIsWishlistOpen(!isWishlistOpen)}
+        onRemoveCard={handleRemoveFromWishlist}
+        onCopyList={handleCopyWishlist}
+        onDownloadList={handleDownloadWishlist}
+        onClearAll={handleClearWishlist}
+      />
 
       {/* Footer */}
       <footer className="bg-slate-950/80 border-t border-blue-500/20 mt-auto py-4 text-center">
