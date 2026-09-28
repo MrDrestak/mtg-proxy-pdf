@@ -1,0 +1,298 @@
+# Phase 5: Backend Integration for Data Persistence
+
+## Overview
+
+Phase 5 implements cloud storage and data persistence using Firebase, allowing users to save their card galleries to the cloud instead of losing them on page reload.
+
+**Status**: Phase 5A (Backend Infrastructure) - COMPLETE  
+**Next**: Phase 5B (App Integration) - Ready to implement
+
+## What's New in Phase 5A
+
+### 1. **Firebase Configuration** (`services/firebaseConfig.ts`)
+- Initializes Firebase with credentials from environment variables
+- Graceful fallback to localStorage if Firebase not configured
+- Initializes: Auth, Firestore, Storage
+
+### 2. **Card Service Layer** (`services/cardService.ts`)
+Core database operations:
+- `uploadCardImage()` - Upload images to Firebase Storage
+- `saveCard()` - Save/update card metadata to Firestore
+- `loadAllCards()` - Load all cards from Firestore
+- `loadCardsByColor()` - Filter cards by MTG color
+- `loadCardsByTags()` - Filter cards by tags
+- `deleteCard()` - Remove card from Firebase
+- `updateCardMetadata()` - Update card info without re-uploading image
+
+### 3. **Custom Hook** (`hooks/useFirebaseCards.ts`)
+Complete card management with automatic fallback:
+- `useFirebaseCards()` hook for components
+- Automatic Firebase/localStorage detection
+- CRUD operations (add, update, remove, refresh)
+- Automatic localStorage backup for offline support
+- Loading states and error handling
+
+### 4. **Enhanced Admin Panel** (`components/AdminPanelPhase5.tsx`)
+Professional upload and management interface:
+- Upload multiple images with progress
+- Edit card metadata:
+  - Name & nickname
+  - MTG color identity (W/U/B/R/G/M/C multi-select)
+  - Tags/categories with add/remove
+  - Notes (rich text optional)
+- Color-coded UI for MTG colors
+- Watermark settings management
+- Error handling and validation
+- Firebase status indicator
+
+### 5. **Environment Configuration** (`.env.example`)
+Template for Firebase credentials with:
+- Setup instructions
+- Firestore rules (development & production)
+- Storage rules examples
+- Deployment checklist
+
+## Firebase Project Setup
+
+### Step 1: Create Firebase Project
+
+1. Visit https://console.firebase.google.com
+2. Click "Create a new project"
+3. Name it "MTG Proxy Labs" (or your preference)
+4. Enable Google Analytics (optional)
+5. Create project
+
+### Step 2: Create Web App
+
+1. In Firebase Console, click "Project Settings" (gear icon)
+2. Click "Your apps" tab
+3. Click "Add app" → "Web"
+4. Register app with name "MTG Proxy Labs"
+5. Copy the config shown (these are your credentials)
+
+### Step 3: Enable Firestore Database
+
+1. In left sidebar, click "Firestore Database"
+2. Click "Create database"
+3. Choose "Start in test mode" (for development)
+4. Select region (us-central1 recommended)
+5. Click "Create"
+6. Set Firestore rules to:
+
+```firestore
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /cards/{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
+```
+
+### Step 4: Enable Cloud Storage
+
+1. In left sidebar, click "Storage"
+2. Click "Get started"
+3. Keep default location (us-central1)
+4. Start in test mode
+5. Set Storage rules to:
+
+```firestore
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /cards/{allPaths=**} {
+      allow read, write: if true;
+    }
+  }
+}
+```
+
+### Step 5: Configure Environment Variables
+
+1. Create `.env.local` in project root (copy from `.env.example`)
+2. Fill in credentials from Firebase console:
+   ```
+   REACT_APP_FIREBASE_API_KEY=your_api_key
+   REACT_APP_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+   REACT_APP_FIREBASE_PROJECT_ID=your_project_id
+   REACT_APP_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+   REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+   REACT_APP_FIREBASE_APP_ID=your_app_id
+   ```
+3. Do NOT commit `.env.local` to git
+
+### Step 6: Deploy to Vercel
+
+1. Go to https://vercel.com
+2. Import your GitHub repo
+3. In "Environment Variables" section, add the same 6 Firebase variables
+4. Deploy
+
+## Phase 5B: App Integration (Next Steps)
+
+To integrate Firebase into the app:
+
+1. **Update App.tsx**:
+   ```typescript
+   import { useFirebaseCards } from './hooks/useFirebaseCards';
+   
+   // Replace useState for cards with:
+   const { 
+     cards, 
+     loading, 
+     addCard, 
+     updateCard, 
+     removeCard 
+   } = useFirebaseCards();
+   ```
+
+2. **Update AdminPanel import**:
+   ```typescript
+   import AdminPanelPhase5 from './components/AdminPanelPhase5';
+   ```
+
+3. **Add Firebase status to header** (show indicator when enabled)
+
+4. **Test locally**:
+   - npm start
+   - Upload cards
+   - Reload page (cards should persist from localStorage)
+   - Once Firebase configured, reload again (cards persist from cloud)
+
+5. **Deploy**:
+   ```bash
+   git add .env.local  # For local testing only
+   git push origin main
+   # Vercel auto-deploys with environment variables
+   ```
+
+## Data Structure
+
+### Firestore Collection: `cards`
+
+```typescript
+{
+  // Auto-generated by Firestore
+  _docId: "abc123...",
+  
+  // Card metadata
+  name: "Black Lotus",
+  nickname: "The Lotus",
+  colors: ["B"],  // Array of CardColor
+  tags: ["mythic", "reserved-list"],
+  notes: "Alpha edition, played condition",
+  
+  // Image URL (from Firebase Storage)
+  dataUrl: "https://firebasestorage.googleapis.com/...",
+  
+  // Timestamps
+  createdAt: Timestamp,
+  updatedAt: Timestamp
+}
+```
+
+### Firebase Storage Structure
+
+```
+cards/
+├── {cardId}/
+│   └── image.jpg  (card image file)
+```
+
+## Fallback Behavior
+
+If Firebase is not configured or connection fails:
+
+1. **localStorage** is used as primary storage
+2. App continues working with no UI changes
+3. Data persists across page reloads (localhost only)
+4. When Firebase configured, automatic sync to cloud
+
+## Free Tier Limits
+
+### Firebase (Generous Free Tier)
+- **Firestore**: 1GB storage + 50K daily reads
+- **Storage**: 5GB total
+- **Perfect for**: Personal portfolio, small teams
+
+### MTG Proxy Labs Use Case
+- ~100 cards × ~500KB image = 50MB (well under 5GB)
+- Daily reads: ~10-50 (well under 50K limit)
+- **Estimated cost**: $0/month ✓
+
+## Production Security
+
+⚠️ **Important**: Before deploying to production with real data:
+
+1. **Update Firestore Rules**:
+   ```firestore
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /cards/{document=**} {
+         // Only allow authenticated users
+         allow read, write: if request.auth != null;
+       }
+     }
+   }
+   ```
+
+2. **Update Storage Rules**:
+   ```firestore
+   rules_version = '2';
+   service firebase.storage {
+     match /b/{bucket}/o {
+       match /cards/{allPaths=**} {
+         allow read, write: if request.auth != null;
+       }
+     }
+   }
+   ```
+
+3. **Implement Authentication** (in Phase 5C):
+   - Email/password or OAuth
+   - Admin-only access to admin panel
+   - User-specific card galleries
+
+## Troubleshooting
+
+### Firebase not connecting
+1. Check `.env.local` has all 6 variables
+2. Verify Firestore is enabled in Firebase Console
+3. Verify Storage is enabled in Firebase Console
+4. Check browser console for error messages
+
+### Images not uploading
+1. Verify Storage rules allow writes
+2. Check Firebase Storage quota (5GB free)
+3. Verify image size < 10MB
+
+### Data not persisting
+1. Check localStorage in DevTools (Application tab)
+2. Verify Firebase Rules allow reads/writes
+3. Check Firestore in Firebase Console for documents
+
+## Next Steps
+
+- **Phase 5B**: Integration testing with real Firebase
+- **Phase 5C**: User authentication
+- **Phase 5D**: Production security hardening
+- **Phase 6**: Advanced features (sharing, collections, printing optimization)
+
+## File Reference
+
+| File | Purpose |
+|------|---------|
+| `services/firebaseConfig.ts` | Firebase initialization |
+| `services/cardService.ts` | Database operations |
+| `hooks/useFirebaseCards.ts` | React hook for card management |
+| `components/AdminPanelPhase5.tsx` | Enhanced admin UI |
+| `.env.example` | Environment variable template |
+
+---
+
+**Phase 5A Status**: ✅ Complete - All backend infrastructure ready
+
+**Next Action**: Await user confirmation to proceed with Phase 5B (App Integration)
