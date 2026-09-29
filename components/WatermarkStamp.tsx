@@ -29,28 +29,30 @@ const WatermarkStamp: React.FC<WatermarkStampProps> = ({ opacity, scale }) => {
     ctx.clearRect(0, 0, cardWidth, cardHeight);
 
     // Watermark properties - circular seal with text forming the circle
-    const radius = (cardHeight * scale) / 180; // Scale-dependent radius
+    const radius = (cardHeight * scale) / 150; // Larger radius for better visibility
     const centerX = cardWidth / 2;
-    const centerY = cardHeight / 2.8; // Upper portion of card
+    const centerY = cardHeight / 2.5; // Center vertically
 
     // Draw circular watermark seal with text path
     ctx.save();
     ctx.globalAlpha = opacity / 100;
     ctx.fillStyle = '#1E3FE0'; // Luminous Blue
-    ctx.font = `900 ${Math.max(10, 14 * (scale / 100))}px Inter, sans-serif`;
+    ctx.font = `900 ${Math.max(12, 16 * (scale / 100))}px Inter, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
     // Text to draw in circle - with stars as separators
     const text = '★ MTG PROXY LAB ★';
-    const textWidth = ctx.measureText(text).width;
-    const angle = textWidth / radius;
-    const startAngle = Math.PI / 2; // Start at top
+
+    // Calculate angle spacing per character
+    const totalAngle = Math.PI * 1.5; // Cover 270 degrees
+    const anglePerChar = totalAngle / text.length;
+    const startAngle = Math.PI / 2 + totalAngle / 2; // Start from top-left
 
     // Draw text along circular path
     for (let i = 0; i < text.length; i++) {
       const char = text[i];
-      const charAngle = startAngle - (i * angle) / text.length;
+      const charAngle = startAngle - (i * anglePerChar);
 
       ctx.save();
       ctx.translate(centerX, centerY);

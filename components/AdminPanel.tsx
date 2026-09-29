@@ -16,7 +16,6 @@ const MANA_COLORS: { value: CardColor; label: string; color: string }[] = [
 interface AdminPanelProps {
   cards: CardImage[];
   onAddCard: (card: CardImage, imageData?: string) => Promise<void>;
-  onRemoveCard: (cardId: string) => Promise<void>;
   onUpdateCard: (cardId: string, updates: Partial<CardImage>) => Promise<void>;
   watermarkOpacity: number;
   watermarkScale: number;
@@ -28,7 +27,6 @@ interface AdminPanelProps {
 const AdminPanel: React.FC<AdminPanelProps> = ({
   cards,
   onAddCard,
-  onRemoveCard,
   onUpdateCard,
   watermarkOpacity,
   watermarkScale,
@@ -352,13 +350,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                 )}
 
                 {/* Add New Tag */}
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2">
                   <input
                     type="text"
                     value={newTagInput}
                     onChange={(e) => setNewTagInput(e.target.value)}
                     placeholder="Nueva etiqueta..."
-                    className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-sm"
+                    className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-sm"
                     onKeyPress={(e) => {
                       if (e.key === 'Enter' && newTagInput.trim()) {
                         setFormTags(prev => [...new Set([...prev, newTagInput.trim()])]);
@@ -373,7 +371,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                         setNewTagInput('');
                       }
                     }}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-1 font-semibold text-sm"
+                    className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-1 font-semibold text-sm"
                   >
                     <Plus size={16} />
                     Agregar
@@ -538,15 +536,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                         </div>
                       )}
 
-                      {editingCardId !== card.id && (
-                        <button
-                          onClick={() => onRemoveCard(card.id).catch(err => console.error('Error removing card:', err))}
-                          className="w-full px-3 py-1.5 bg-red-900/40 hover:bg-red-900/60 text-red-300 text-xs font-semibold rounded flex items-center justify-center gap-2 transition-colors"
-                        >
-                          <Trash2 size={14} />
-                          Eliminar
-                        </button>
-                      )}
                     </div>
                   </div>
                 ))}

@@ -757,7 +757,6 @@ const App: React.FC = () => {
         <AdminPanel
           cards={cards}
           onAddCard={handleAddCard}
-          onRemoveCard={removeCard}
           onUpdateCard={handleUpdateCard}
           watermarkOpacity={watermarkOpacity}
           watermarkScale={watermarkScale}
