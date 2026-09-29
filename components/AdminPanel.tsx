@@ -40,6 +40,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editingCardId, setEditingCardId] = useState<string | null>(null);
   const [editNickname, setEditNickname] = useState('');
+  const [editTags, setEditTags] = useState<string[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<string>('');
@@ -107,9 +108,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
           };
           setUploadProgress(((i + 0.5) / totalFiles) * 100);
 
-          // Firebase save is async
-          setUploadStatus(`Guardando en Firebase: ${file.name.substring(0, 20)}...`);
-          console.log(`[AdminPanel] Uploading to Firebase: ${file.name}`);
+          // Supabase save is async
+          setUploadStatus(`Guardando en Supabase: ${file.name.substring(0, 20)}...`);
+          console.log(`[AdminPanel] Uploading to Supabase: ${file.name}`);
           // Pass dataUrl as second argument for Firebase Storage upload
           await onAddCard(newCard, dataUrl);
           console.log(`[AdminPanel] Successfully uploaded: ${file.name}`);
@@ -146,15 +147,20 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
     }
   };
 
-  const startEditingNickname = (cardId: string, currentNickname: string) => {
-    setEditingCardId(cardId);
-    setEditNickname(currentNickname || '');
+  const startEditingCard = (card: CardImage) => {
+    setEditingCardId(card.id);
+    setEditNickname(card.nickname || '');
+    setEditTags(card.tags || []);
   };
 
-  const saveNicknameEdit = async (cardId: string) => {
-    await onUpdateCard(cardId, { nickname: editNickname });
+  const saveCardEdit = async (cardId: string) => {
+    await onUpdateCard(cardId, {
+      nickname: editNickname || undefined,
+      tags: editTags
+    });
     setEditingCardId(null);
     setEditNickname('');
+    setEditTags([]);
   };
 
   return (
@@ -237,23 +243,28 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
           </div>
 
-          {/* 2. Información de la Carta + Cargar Imágenes (UNIFIED) */}
+          {/* 2. Card Info + Upload (UNIFIED) */}
           <div className="bg-slate-900/50 rounded-xl border border-blue-500/20 p-6">
             <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
               <Edit2 size={20} className="text-purple-400" />
-              Información de la Carta + Cargar Imágenes
+              Card Info
             </h3>
 
             <div className="space-y-4">
-              {/* Name Input */}
+              {/* Info: Name & Mana are permanent */}
+              <p className="text-xs text-slate-400 bg-slate-800/50 p-2 rounded">
+                💡 <strong>Nombre</strong> y <strong>Color de Maná</strong> son permanentes. Si cometes un error, debes borrar y volver a cargar la carta.
+              </p>
+              {/* Name Input - Required */}
               <div>
-                <label className="text-white text-sm font-semibold block mb-2">Nombre (opcional)</label>
+                <label className="text-white text-sm font-semibold block mb-2">Nombre <span className="text-red-400">*</span></label>
                 <input
                   type="text"
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
-                  placeholder="Nombre personalizado de la carta"
+                  placeholder="Nombre de la carta (requerido)"
                   className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-sm"
+                  required
                 />
               </div>
 
@@ -295,51 +306,50 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                 </div>
               </div>
 
-              {/* Tags Selection */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <label className="text-white text-sm font-semibold flex items-center gap-2">
-                    <Tag size={16} />
-                    Etiquetas
-                  </label>
-                  <button
-                    onClick={() => setShowTagManager(!showTagManager)}
-                    className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
-                  >
-                    <Settings size={14} />
-                    Gestor
-                  </button>
-                </div>
+              {/* Tags Selection - Dropdown + Add Button */}
+              <div className="space-y-3">
+                <label className="text-white text-sm font-semibold flex items-center gap-2">
+                  <Tag size={16} />
+                  Etiquetas
+                </label>
 
-                {/* Tag Selection */}
-                <div className="flex flex-wrap gap-2 mb-3">
+                {/* Tags Dropdown List */}
+                <div className="bg-slate-700 border border-slate-600 rounded-lg p-3 max-h-32 overflow-y-auto">
                   {existingTags.length === 0 ? (
-                    <p className="text-slate-400 text-xs">No hay etiquetas existentes. Crea una nueva.</p>
+                    <p className="text-slate-400 text-xs">No hay etiquetas. Crea una nueva.</p>
                   ) : (
-                    existingTags.map((tag) => (
-                      <button
-                        key={tag}
-                        onClick={() => {
-                          console.log('[AdminPanel] Toggling tag:', tag);
-                          setFormTags(prev => {
-                            const updated = prev.includes(tag)
-                              ? prev.filter(t => t !== tag)
-                              : [...prev, tag];
-                            console.log('[AdminPanel] formTags after toggle:', updated);
-                            return updated;
-                          });
-                        }}
-                        className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                          formTags.includes(tag)
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                        }`}
-                      >
-                        {tag}
-                      </button>
-                    ))
+                    <div className="space-y-2">
+                      {existingTags.map((tag) => (
+                        <label key={tag} className="flex items-center gap-2 cursor-pointer hover:bg-slate-600 p-1 rounded transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={formTags.includes(tag)}
+                            onChange={(e) => {
+                              setFormTags(prev =>
+                                e.target.checked
+                                  ? [...prev, tag]
+                                  : prev.filter(t => t !== tag)
+                              );
+                            }}
+                            className="w-4 h-4 rounded accent-blue-500 cursor-pointer"
+                          />
+                          <span className="text-white text-sm">{tag}</span>
+                        </label>
+                      ))}
+                    </div>
                   )}
                 </div>
+
+                {/* Selected Tags Display */}
+                {formTags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {formTags.map((tag) => (
+                      <span key={tag} className="px-2 py-1 bg-blue-600 text-white text-xs rounded-full font-semibold">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 {/* Add New Tag */}
                 <div className="flex gap-2">
@@ -351,12 +361,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                     className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-sm"
                     onKeyPress={(e) => {
                       if (e.key === 'Enter' && newTagInput.trim()) {
-                        console.log('[AdminPanel] Adding tag via Enter:', newTagInput.trim());
-                        setFormTags(prev => {
-                          const updated = [...new Set([...prev, newTagInput.trim()])];
-                          console.log('[AdminPanel] formTags after add:', updated);
-                          return updated;
-                        });
+                        setFormTags(prev => [...new Set([...prev, newTagInput.trim()])]);
                         setNewTagInput('');
                       }
                     }}
@@ -364,53 +369,18 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                   <button
                     onClick={() => {
                       if (newTagInput.trim()) {
-                        console.log('[AdminPanel] Adding tag via button:', newTagInput.trim());
-                        setFormTags(prev => {
-                          const updated = [...new Set([...prev, newTagInput.trim()])];
-                          console.log('[AdminPanel] formTags after add:', updated);
-                          return updated;
-                        });
+                        setFormTags(prev => [...new Set([...prev, newTagInput.trim()])]);
                         setNewTagInput('');
                       }
                     }}
-                    className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-1"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-1 font-semibold text-sm"
                   >
                     <Plus size={16} />
+                    Agregar
                   </button>
                 </div>
               </div>
 
-              {/* Tag Manager Panel */}
-              {showTagManager && (
-                <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700/50 space-y-3">
-                  <h4 className="text-white font-semibold text-sm">Gestor de Etiquetas</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {existingTags.map((tag) => (
-                      <div
-                        key={tag}
-                        className="flex items-center gap-2 px-3 py-1 bg-slate-700 rounded-full text-sm"
-                      >
-                        <span className="text-white">{tag}</span>
-                        <button
-                          onClick={() => {
-                            // Remove tag from all cards
-                            cards.forEach(card => {
-                              if (card.tags?.includes(tag)) {
-                                onUpdateCard(card.id, {
-                                  tags: card.tags.filter(t => t !== tag)
-                                }).catch(err => console.error('Error removing tag:', err));
-                              }
-                            });
-                          }}
-                          className="text-red-400 hover:text-red-300"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* File Upload Section - INTEGRATED */}
               <div className="pt-4 border-t border-slate-700/50">
@@ -486,48 +456,97 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
 
                     {/* Card Info */}
                     <div className="p-3 space-y-3 border-t border-slate-700/50">
-                      <p className="text-white text-sm font-semibold truncate">{card.name}</p>
+                      {/* Name - Read Only */}
+                      <div>
+                        <p className="text-xs text-slate-400 mb-1">Nombre (no editable)</p>
+                        <p className="text-white text-sm font-semibold truncate">{card.name}</p>
+                      </div>
 
-                      {/* Nickname Edit */}
                       {editingCardId === card.id ? (
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={editNickname}
-                            onChange={(e) => setEditNickname(e.target.value)}
-                            placeholder="Nickname"
-                            className="flex-1 px-2 py-1 bg-slate-700 border border-slate-600 rounded text-white text-xs placeholder-slate-500 focus:outline-none focus:border-blue-500"
-                            autoFocus
-                          />
+                        <div className="space-y-3">
+                          {/* Edit Nickname */}
+                          <div>
+                            <label className="text-xs text-slate-400 block mb-1">Apodo</label>
+                            <input
+                              type="text"
+                              value={editNickname}
+                              onChange={(e) => setEditNickname(e.target.value)}
+                              placeholder="Apodo (opcional)"
+                              className="w-full px-2 py-1 bg-slate-700 border border-slate-600 rounded text-white text-xs placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                              autoFocus
+                            />
+                          </div>
+
+                          {/* Edit Tags - Dropdown */}
+                          <div>
+                            <label className="text-xs text-slate-400 block mb-2">Etiquetas</label>
+                            <div className="bg-slate-600 border border-slate-500 rounded p-2 max-h-24 overflow-y-auto space-y-1">
+                              {existingTags.map((tag) => (
+                                <label key={tag} className="flex items-center gap-2 cursor-pointer hover:bg-slate-700 p-1 rounded text-xs">
+                                  <input
+                                    type="checkbox"
+                                    checked={editTags.includes(tag)}
+                                    onChange={(e) => {
+                                      setEditTags(prev =>
+                                        e.target.checked
+                                          ? [...prev, tag]
+                                          : prev.filter(t => t !== tag)
+                                      );
+                                    }}
+                                    className="w-3 h-3 rounded accent-blue-500 cursor-pointer"
+                                  />
+                                  <span className="text-slate-200">{tag}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Save Button */}
                           <button
-                            onClick={() => saveNicknameEdit(card.id).catch(err => console.error('Error saving nickname:', err))}
-                            className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded transition-colors"
+                            onClick={() => saveCardEdit(card.id).catch(err => console.error('Error saving card:', err))}
+                            className="w-full px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded transition-colors"
                           >
-                            Guardar
+                            Guardar Cambios
                           </button>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2">
-                          <p className="text-amber-300 text-xs flex-1 truncate">
-                            {card.nickname || 'Sin nickname'}
+                        <div className="space-y-2">
+                          {/* Display Nickname */}
+                          <p className="text-amber-300 text-xs">
+                            {card.nickname || '<sin apodo>'}
                           </p>
+
+                          {/* Display Tags */}
+                          {card.tags && card.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {card.tags.map((tag) => (
+                                <span key={tag} className="px-2 py-0.5 bg-blue-600/60 text-blue-100 text-xs rounded-full">
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Edit Button */}
                           <button
-                            onClick={() => startEditingNickname(card.id, card.nickname || '')}
-                            className="p-1 hover:bg-slate-700 rounded transition-colors"
+                            onClick={() => startEditingCard(card)}
+                            className="w-full px-3 py-1.5 bg-blue-600/40 hover:bg-blue-600/60 text-blue-300 text-xs font-semibold rounded flex items-center justify-center gap-2 transition-colors"
                           >
-                            <Edit2 size={14} className="text-slate-400" />
+                            <Edit2 size={14} />
+                            Editar Apodo y Etiquetas
                           </button>
                         </div>
                       )}
 
-                      {/* Delete Button */}
-                      <button
-                        onClick={() => onRemoveCard(card.id).catch(err => console.error('Error removing card:', err))}
-                        className="w-full px-3 py-1.5 bg-red-900/40 hover:bg-red-900/60 text-red-300 text-xs font-semibold rounded flex items-center justify-center gap-2 transition-colors"
-                      >
-                        <Trash2 size={14} />
-                        Eliminar
-                      </button>
+                      {editingCardId !== card.id && (
+                        <button
+                          onClick={() => onRemoveCard(card.id).catch(err => console.error('Error removing card:', err))}
+                          className="w-full px-3 py-1.5 bg-red-900/40 hover:bg-red-900/60 text-red-300 text-xs font-semibold rounded flex items-center justify-center gap-2 transition-colors"
+                        >
+                          <Trash2 size={14} />
+                          Eliminar
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
