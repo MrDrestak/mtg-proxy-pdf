@@ -11,6 +11,7 @@ import CardZoomModal from './components/CardZoomModal';
 import WishlistCart from './components/WishlistCart';
 import GalleryFilters from './components/GalleryFilters';
 import { generatePDF } from './services/pdfGenerator';
+import { generateSVG } from './services/svgGenerator';
 import { processCardImageWithBlackCorners, ImageProcessOptions } from './services/imageProcessor';
 
 const App: React.FC = () => {
@@ -187,6 +188,16 @@ const App: React.FC = () => {
     setIsExporting(true);
     try {
       await generatePDF(pages, scaleX, scaleY, paperFormat, foilMode);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportSVG = () => {
+    if (cards.length === 0) return;
+    setIsExporting(true);
+    try {
+      generateSVG(pages, paperFormat);
     } finally {
       setIsExporting(false);
     }
@@ -694,15 +705,25 @@ const App: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Export Button */}
-                  <button
-                    onClick={handleExportPDF}
-                    disabled={isExporting || cards.length === 0}
-                    className="w-full flex items-center justify-center gap-2 px-4 sm:px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-lg transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-                  >
-                    <FileText size={18} />
-                    {isExporting ? 'Generando PDF...' : 'Exportar PDF'}
-                  </button>
+                  {/* Export Buttons */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                      onClick={handleExportPDF}
+                      disabled={isExporting || cards.length === 0}
+                      className="flex items-center justify-center gap-2 px-4 sm:px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-lg transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                    >
+                      <FileText size={18} />
+                      {isExporting ? 'Generando...' : 'Exportar PDF'}
+                    </button>
+                    <button
+                      onClick={handleExportSVG}
+                      disabled={isExporting || cards.length === 0}
+                      className="flex items-center justify-center gap-2 px-4 sm:px-6 py-3 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold rounded-lg transition-all shadow-lg shadow-amber-500/30 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                    >
+                      <Layout size={18} />
+                      {isExporting ? 'Generando...' : 'Exportar SVG'}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
