@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 
 interface WatermarkStampProps {
   opacity: number; // 10-85
@@ -6,98 +6,119 @@ interface WatermarkStampProps {
 }
 
 const WatermarkStamp: React.FC<WatermarkStampProps> = ({ opacity, scale }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Get actual canvas display size from parent or computed style
-    const parent = canvas.parentElement;
-    let cardWidth = 236;
-    let cardHeight = 330;
-
-    if (parent) {
-      const rect = parent.getBoundingClientRect();
-      if (rect.width > 0) cardWidth = rect.width;
-      if (rect.height > 0) cardHeight = rect.height;
-
-      // If height is still 0 (aspect ratio not computed), calculate from width
-      if (cardHeight === 0 && cardWidth > 0) {
-        cardHeight = (cardWidth * 88) / 63; // MTG card aspect ratio
-      }
-    }
-
-    // Set canvas resolution to match display size (2x for crisp rendering)
-    canvas.width = cardWidth * 2;
-    canvas.height = cardHeight * 2;
-    ctx.scale(2, 2);
-
-    // Clear canvas
-    ctx.clearRect(0, 0, cardWidth, cardHeight);
-
-    // Watermark properties - small circular seal centered in card
-    const radius = (cardHeight * scale) / 250; // Smaller radius for subtle centered watermark
-    const centerX = cardWidth / 2;
-    const centerY = cardHeight / 2; // Center vertically in middle of card
-
-    // Draw circular watermark seal with text path
-    ctx.save();
-    ctx.globalAlpha = opacity / 100;
-    ctx.fillStyle = '#1E3FE0'; // Luminous Blue
-    // Bold font
-    const fontSize = Math.max(12, 14 * (scale / 100));
-    ctx.font = `900 ${fontSize}px Inter, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    // Text to draw in circle - with stars as separators
-    const text = '★ MTG PROXY LAB ★';
-
-    // Calculate angle spacing per character
-    const totalAngle = Math.PI * 1.5; // Cover 270 degrees
-    const anglePerChar = totalAngle / text.length;
-    const startAngle = Math.PI / 2 + totalAngle / 2; // Start from top-left
-
-    // Draw text along circular path with bold letters
-    for (let i = 0; i < text.length; i++) {
-      const char = text[i];
-      const charAngle = startAngle - (i * anglePerChar);
-
-      ctx.save();
-      ctx.translate(centerX, centerY);
-      ctx.rotate(charAngle);
-      // Fill with stroke for extra boldness
-      ctx.fillText(char, 0, -radius);
-      ctx.restore();
-    }
-
-    ctx.restore();
-  }, [opacity, scale]); // Re-render when opacity/scale changes AND when container resizes
-
-  // Handle window resize
-  useEffect(() => {
-    const handleResize = () => {
-      const canvas = canvasRef.current;
-      if (canvas) {
-        // Trigger re-render by updating canvas
-        canvas.dispatchEvent(new Event('resize'));
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  // Scale the badge size (base 60px, scales from 60-150%)
+  const badgeSize = Math.max(30, 60 * (scale / 100));
+  const opacityDecimal = opacity / 100;
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 pointer-events-none"
-      style={{ width: '100%', height: '100%' }}
-    />
+    <div
+      className="absolute inset-0 pointer-events-none flex items-center justify-center"
+      style={{ opacity: opacityDecimal }}
+    >
+      <svg
+        width={badgeSize}
+        height={badgeSize}
+        viewBox="0 0 120 120"
+        className="drop-shadow-lg"
+        style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}
+      >
+        {/* Outer hexagon gradient background */}
+        <defs>
+          <linearGradient id="badgeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style={{ stopColor: '#1E3FE0', stopOpacity: 0.95 }} />
+            <stop offset="100%" style={{ stopColor: '#0F2AA8', stopOpacity: 0.95 }} />
+          </linearGradient>
+          <filter id="innerGlow">
+            <feGaussianBlur stdDeviation="1" result="coloredBlur" />
+            <feMerge>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        {/* Hexagon outer shape */}
+        <polygon
+          points="60,10 105,35 105,85 60,110 15,85 15,35"
+          fill="url(#badgeGradient)"
+          stroke="#00D9FF"
+          strokeWidth="1.5"
+          filter="url(#innerGlow)"
+        />
+
+        {/* Top star */}
+        <text
+          x="60"
+          y="28"
+          fontSize="18"
+          fontWeight="900"
+          textAnchor="middle"
+          fill="#00D9FF"
+          fontFamily="Arial, sans-serif"
+        >
+          ★
+        </text>
+
+        {/* MTG text - top */}
+        <text
+          x="60"
+          y="48"
+          fontSize="13"
+          fontWeight="900"
+          textAnchor="middle"
+          fill="#FFFFFF"
+          fontFamily="Arial, sans-serif"
+          letterSpacing="1"
+        >
+          MTG
+        </text>
+
+        {/* PROXY text - middle */}
+        <text
+          x="60"
+          y="65"
+          fontSize="11"
+          fontWeight="700"
+          textAnchor="middle"
+          fill="#00D9FF"
+          fontFamily="Arial, sans-serif"
+          letterSpacing="1"
+        >
+          PROXY
+        </text>
+
+        {/* LAB text - bottom */}
+        <text
+          x="60"
+          y="82"
+          fontSize="13"
+          fontWeight="900"
+          textAnchor="middle"
+          fill="#FFFFFF"
+          fontFamily="Arial, sans-serif"
+          letterSpacing="1"
+        >
+          LAB
+        </text>
+
+        {/* Bottom star */}
+        <text
+          x="60"
+          y="98"
+          fontSize="18"
+          fontWeight="900"
+          textAnchor="middle"
+          fill="#00D9FF"
+          fontFamily="Arial, sans-serif"
+        >
+          ★
+        </text>
+
+        {/* Inner accent lines */}
+        <line x1="30" y1="60" x2="50" y2="60" stroke="#00D9FF" strokeWidth="0.8" opacity="0.6" />
+        <line x1="70" y1="60" x2="90" y2="60" stroke="#00D9FF" strokeWidth="0.8" opacity="0.6" />
+      </svg>
+    </div>
   );
 };
 
