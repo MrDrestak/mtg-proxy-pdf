@@ -13,6 +13,7 @@ export default async function handler(
     'Access-Control-Allow-Headers',
     'X-CSRF-Token,X-Requested-With,Accept,Accept-Version,Content-Length,Content-MD5,Content-Type,Date,X-Api-Version'
   );
+  response.setHeader('Content-Type', 'application/json');
 
   if (request.method === 'OPTIONS') {
     response.status(200).end();
@@ -31,6 +32,7 @@ export default async function handler(
     }
 
     console.log('[api/upload-image] Uploading image for card:', cardId);
+    console.log('[api/upload-image] Token available:', !!process.env.VERCEL_BLOB_READ_WRITE_TOKEN);
 
     // Convert data URL to blob
     const parts = imageData.split(',');
@@ -56,11 +58,12 @@ export default async function handler(
     );
 
     console.log('[api/upload-image] Upload completed, URL:', result.url);
-    return response.json({ url: result.url });
+    return response.status(200).json({ url: result.url });
   } catch (error) {
     console.error('[api/upload-image] Error:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return response
       .status(500)
-      .json({ error: 'Upload failed', details: String(error) });
+      .json({ error: 'Upload failed', details: errorMessage });
   }
 }

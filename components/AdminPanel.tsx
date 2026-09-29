@@ -52,14 +52,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
   const [newTagInput, setNewTagInput] = useState('');
   const [showTagManager, setShowTagManager] = useState(false);
 
-  // Extract all existing tags from cards
+  // Extract all existing tags from cards, with default "Anime" tag
   const existingTags = useMemo(() => {
     const tags = new Set<string>();
+    tags.add('Anime'); // Default tag
     cards.forEach(card => {
       card.tags?.forEach(tag => tags.add(tag));
     });
     const result = Array.from(tags).sort();
-    console.log('[AdminPanel] existingTags recalculated:', result, 'from', cards.length, 'cards');
     return result;
   }, [cards]);
 
