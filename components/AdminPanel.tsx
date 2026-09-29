@@ -439,7 +439,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                 {cards.map((card) => (
                   <div
                     key={card.id}
-                    className="bg-slate-800/50 rounded-lg border border-slate-700/50 overflow-hidden hover:border-blue-500/50 transition-all flex flex-col h-full"
+                    className="relative bg-slate-800/50 rounded-lg border border-slate-700/50 overflow-hidden hover:border-blue-500/50 transition-all flex flex-col h-full group"
                   >
                     {/* Card Preview - fills available space */}
                     <div className="aspect-[63/88] bg-black flex-shrink-0">
@@ -453,7 +453,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                     </div>
 
                     {/* Card Info */}
-                    <div className="p-2 space-y-2 border-t border-slate-700/50 flex-1 overflow-hidden flex flex-col">
+                    <div className="p-2 space-y-1 border-t border-slate-700/50 flex-1 overflow-hidden flex flex-col">
                       {/* Name - Read Only */}
                       <div>
                         <p className="text-xs text-slate-400 mb-1">Nombre (no editable)</p>
@@ -508,31 +508,35 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                           </button>
                         </div>
                       ) : (
-                        <div className="space-y-2">
+                        <div className="space-y-2 flex flex-col h-full">
                           {/* Display Nickname */}
-                          <p className="text-amber-300 text-xs">
-                            {card.nickname || '<sin apodo>'}
-                          </p>
+                          {card.nickname && (
+                            <p className="text-amber-300 text-xs font-semibold truncate">
+                              {card.nickname}
+                            </p>
+                          )}
 
                           {/* Display Tags */}
                           {card.tags && card.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-1">
+                            <div className="flex flex-wrap gap-0.5">
                               {card.tags.map((tag) => (
-                                <span key={tag} className="px-2 py-0.5 bg-blue-600/60 text-blue-100 text-xs rounded-full">
+                                <span key={tag} className="px-1.5 py-0.5 bg-blue-600/60 text-blue-100 text-[10px] rounded-full truncate">
                                   {tag}
                                 </span>
                               ))}
                             </div>
                           )}
 
-                          {/* Edit Button */}
-                          <button
-                            onClick={() => startEditingCard(card)}
-                            className="w-full px-3 py-1.5 bg-blue-600/40 hover:bg-blue-600/60 text-blue-300 text-xs font-semibold rounded flex items-center justify-center gap-2 transition-colors"
-                          >
-                            <Edit2 size={14} />
-                            Editar Apodo y Etiquetas
-                          </button>
+                          {/* Edit Button Section */}
+                          <div className="mt-auto pt-2 border-t border-slate-700/30">
+                            <button
+                              onClick={() => startEditingCard(card)}
+                              className="w-full px-2 py-1.5 bg-blue-600/40 hover:bg-blue-600/60 text-blue-300 text-xs font-semibold rounded flex items-center justify-center gap-1 transition-colors"
+                            >
+                              <Edit2 size={12} />
+                              Editar
+                            </button>
+                          </div>
                         </div>
                       )}
 
