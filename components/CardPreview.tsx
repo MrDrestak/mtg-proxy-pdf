@@ -65,14 +65,6 @@ const CardPreview: React.FC<CardPreviewProps> = ({
             <WatermarkStamp opacity={watermarkOpacity} scale={watermarkScale} />
           )}
 
-          {/* Card Info Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-2 pointer-events-none">
-            {card.nickname && (
-              <p className="text-amber-300 text-[10px] font-semibold truncate">{card.nickname}</p>
-            )}
-            <p className="text-white text-xs font-bold truncate">{card.name}</p>
-          </div>
-
           {/* Delete Button */}
           {onRemove && (
             <button

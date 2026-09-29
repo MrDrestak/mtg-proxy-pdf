@@ -444,7 +444,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
             {cards.length === 0 ? (
               <p className="text-slate-400 text-center py-8">No hay cartas cargadas</p>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 lg:max-w-6xl">
                 {cards.map((card) => (
                   <div
                     key={card.id}
