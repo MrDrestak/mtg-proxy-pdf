@@ -97,19 +97,30 @@ export function useFirebaseCards(): UseFirebaseCardsReturn {
   const addCard = useCallback(
     async (card: CardImage, imageData?: string) => {
       try {
+        console.log('[useFirebaseCards.addCard] Starting with Firebase:', isFirebaseConfigured(), 'imageData present:', !!imageData);
+
         if (isFirebaseConfigured() && imageData) {
+          console.log('[useFirebaseCards.addCard] Using Firebase path');
           // Upload image to Firebase Storage
+          console.log('[useFirebaseCards.addCard] Calling uploadCardImage...');
           const imageUrl = await uploadCardImage(card.id, imageData);
+          console.log('[useFirebaseCards.addCard] Image uploaded, URL:', imageUrl);
+
           // Save card metadata to Firestore
+          console.log('[useFirebaseCards.addCard] Calling saveCard...');
           const docId = await saveCard(card, imageUrl);
+          console.log('[useFirebaseCards.addCard] Card saved, docId:', docId);
+
           // Update local state with Firebase ID
           const newCard = {
             ...card,
             id: `firebase_${docId}`,
             dataUrl: imageUrl
           };
+          console.log('[useFirebaseCards.addCard] Updating local state');
           setCards(prev => [...prev, newCard]);
         } else {
+          console.log('[useFirebaseCards.addCard] Using localStorage fallback');
           // Save to localStorage only
           const newCard = {
             ...card,
@@ -118,9 +129,12 @@ export function useFirebaseCards(): UseFirebaseCardsReturn {
           setCards(prev => [...prev, newCard]);
         }
         // Sync to localStorage as backup
+        console.log('[useFirebaseCards.addCard] Syncing to localStorage');
         syncToLocalStorage();
+        console.log('[useFirebaseCards.addCard] Complete');
       } catch (err) {
         const error = err instanceof Error ? err : new Error('Failed to add card');
+        console.error('[useFirebaseCards.addCard] Error:', error);
         setError(error);
         throw error;
       }

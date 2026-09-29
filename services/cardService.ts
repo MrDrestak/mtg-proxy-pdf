@@ -22,18 +22,35 @@ const CARDS_COLLECTION = 'cards';
  */
 export async function uploadCardImage(cardId: string, imageData: string): Promise<string> {
   try {
-    // Convert data URL to blob
-    const response = await fetch(imageData);
-    const blob = await response.blob();
+    console.log('[uploadCardImage] Starting upload for card:', cardId);
+
+    // Convert data URL to blob (data URLs cannot be fetched directly)
+    const parts = imageData.split(',');
+    const mimeMatch = parts[0].match(/:(.*?);/);
+    const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+    const bstr = atob(parts[1]);
+    const n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    for (let i = 0; i < n; i++) {
+      u8arr[i] = bstr.charCodeAt(i);
+    }
+    const blob = new Blob([u8arr], { type: mimeType });
+    console.log('[uploadCardImage] Blob created:', { size: blob.size, type: blob.type });
 
     // Create storage reference
     const storageRef = ref(storage, `cards/${cardId}/image.jpg`);
+    console.log('[uploadCardImage] Storage reference created');
 
     // Upload file
+    console.log('[uploadCardImage] Starting uploadBytes...');
     await uploadBytes(storageRef, blob);
+    console.log('[uploadCardImage] uploadBytes completed');
 
     // Get download URL
+    console.log('[uploadCardImage] Getting download URL...');
     const downloadURL = await getDownloadURL(storageRef);
+    console.log('[uploadCardImage] Download URL obtained:', downloadURL);
+
     return downloadURL;
   } catch (error) {
     console.error('Error uploading card image:', error);
