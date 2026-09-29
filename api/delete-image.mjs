@@ -1,10 +1,6 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { del } from '@vercel/blob';
 
-export default async function handler(
-  request: VercelRequest,
-  response: VercelResponse
-) {
+export default async function handler(request, response) {
   // CORS headers
   response.setHeader('Access-Control-Allow-Credentials', 'true');
   response.setHeader('Access-Control-Allow-Origin', '*');
@@ -13,6 +9,7 @@ export default async function handler(
     'Access-Control-Allow-Headers',
     'X-CSRF-Token,X-Requested-With,Accept,Accept-Version,Content-Length,Content-MD5,Content-Type,Date,X-Api-Version'
   );
+  response.setHeader('Content-Type', 'application/json');
 
   if (request.method === 'OPTIONS') {
     response.status(200).end();
@@ -41,8 +38,9 @@ export default async function handler(
     return response.json({ success: true });
   } catch (error) {
     console.error('[api/delete-image] Error:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return response
       .status(500)
-      .json({ error: 'Delete failed', details: String(error) });
+      .json({ error: 'Delete failed', details: errorMessage });
   }
 }
