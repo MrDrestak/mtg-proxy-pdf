@@ -42,7 +42,10 @@ export async function uploadCardImage(cardId: string, imageData: string): Promis
     const result = await put(
       `cards/${cardId}/image.jpg`,
       blob,
-      { access: 'public' }
+      {
+        access: 'public',
+        token: process.env.REACT_APP_VERCEL_BLOB_TOKEN
+      }
     );
     console.log('[uploadCardImage] Upload completed, URL:', result.url);
 
