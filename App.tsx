@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { CardImage, PageLayout, CardColor } from './types';
 import { GRID, MM_TO_PX, PaperFormat, PAPER_SIZES } from './constants';
 import CardPreview from './components/CardPreview';
+import GalleryCard from './components/GalleryCard';
 import ListingDrawer from './components/ListingDrawer';
 import AdminLoginModal from './components/AdminLoginModal';
 import AdminPanel from './components/AdminPanel';
@@ -404,25 +405,23 @@ const App: React.FC = () => {
                 ) : (
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
                     {filteredGalleryCards.map((card) => (
-                      <div
-                        key={card.id}
-                        onClick={() => {
-                          setZoomedCard(card);
-                          setIsZoomOpen(true);
-                        }}
-                        className="cursor-pointer group"
-                      >
-                        <div className="relative w-full aspect-[63/88] rounded-lg overflow-hidden bg-black border border-blue-500/20 hover:border-blue-400/50 transition-all hover:shadow-lg hover:shadow-blue-500/20 transform hover:scale-105">
-                          <CardPreview
+                      <div key={card.id}>
+                        <div
+                          className="relative w-full aspect-[63/88] rounded-lg overflow-hidden bg-black border border-blue-500/20"
+                        >
+                          <GalleryCard
                             card={card}
+                            onClick={() => {
+                              setZoomedCard(card);
+                              setIsZoomOpen(true);
+                            }}
                             showWatermark={showWatermark}
                             watermarkOpacity={watermarkOpacity}
                             watermarkScale={watermarkScale}
-                            fillContainer={true}
                           />
                         </div>
                         <div className="mt-2 px-2">
-                          <p className="text-sm font-semibold text-white truncate group-hover:text-blue-300 transition-colors">{card.name}</p>
+                          <p className="text-sm font-semibold text-white truncate">{card.name}</p>
                           {card.nickname && (
                             <p className="text-xs text-amber-300 truncate">{card.nickname}</p>
                           )}

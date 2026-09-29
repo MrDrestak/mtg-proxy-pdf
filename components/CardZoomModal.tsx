@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Plus, Copy } from 'lucide-react';
 import { CardImage } from '../types';
 import CardPreview from './CardPreview';
@@ -24,19 +24,34 @@ const CardZoomModal: React.FC<CardZoomModalProps> = ({
   showWatermark,
   isInList
 }) => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsVisible(true);
+    }
+  }, [isOpen]);
+
   if (!isOpen || !card) return null;
 
   return (
     <>
-      {/* Overlay */}
+      {/* Overlay with Fade Animation */}
       <div
-        className="fixed inset-0 bg-black/80 z-40 backdrop-blur-sm transition-opacity"
+        className={`fixed inset-0 bg-black/80 z-40 backdrop-blur-sm transition-opacity duration-300 ${
+          isVisible ? 'opacity-100' : 'opacity-0'
+        }`}
         onClick={onClose}
       />
 
-      {/* Modal */}
+      {/* Modal with Fade + Scale Animation */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
-        <div className="bg-gradient-to-b from-slate-900 to-black border border-blue-500/30 rounded-2xl shadow-2xl w-full max-w-md max-h-[95vh] flex flex-col overflow-hidden">
+        <div
+          className={`bg-gradient-to-b from-slate-900 to-black border border-blue-500/30 rounded-2xl shadow-2xl w-full max-w-md max-h-[95vh] flex flex-col overflow-hidden transition-all duration-300 ${
+            isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+          }`}
+        >
+
           {/* Header - Nickname (big), Name (small), Close button */}
           <div className="px-3 sm:px-4 py-3 sm:py-4 border-b border-blue-500/20 bg-slate-950/80 backdrop-blur-xs flex-shrink-0">
             <div className="flex items-start justify-between gap-2">
