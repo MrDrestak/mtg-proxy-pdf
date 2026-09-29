@@ -341,14 +341,6 @@ const App: React.FC = () => {
                 <span className="hidden sm:inline">Admin</span>
               </button>
 
-              <button
-                onClick={clearAll}
-                disabled={cards.length === 0}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed border border-red-500/30"
-              >
-                <Trash2 size={16} />
-                <span className="hidden sm:inline">Limpiar</span>
-              </button>
             </div>
           </div>
         </div>

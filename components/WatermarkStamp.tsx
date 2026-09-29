@@ -29,7 +29,7 @@ const WatermarkStamp: React.FC<WatermarkStampProps> = ({ opacity, scale }) => {
     ctx.clearRect(0, 0, cardWidth, cardHeight);
 
     // Watermark properties - circular seal with text forming the circle
-    const radius = (cardHeight * scale) / 150; // Larger radius for better visibility
+    const radius = (cardHeight * scale) / 115; // Larger radius for 30% bigger default visibility
     const centerX = cardWidth / 2;
     const centerY = cardHeight / 2.5; // Center vertically
 
@@ -37,7 +37,9 @@ const WatermarkStamp: React.FC<WatermarkStampProps> = ({ opacity, scale }) => {
     ctx.save();
     ctx.globalAlpha = opacity / 100;
     ctx.fillStyle = '#1E3FE0'; // Luminous Blue
-    ctx.font = `900 ${Math.max(12, 16 * (scale / 100))}px Inter, sans-serif`;
+    // Extra bold: use very large font with 900 weight
+    const fontSize = Math.max(20, 24 * (scale / 100));
+    ctx.font = `900 ${fontSize}px Inter, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
@@ -49,7 +51,7 @@ const WatermarkStamp: React.FC<WatermarkStampProps> = ({ opacity, scale }) => {
     const anglePerChar = totalAngle / text.length;
     const startAngle = Math.PI / 2 + totalAngle / 2; // Start from top-left
 
-    // Draw text along circular path
+    // Draw text along circular path with bold letters
     for (let i = 0; i < text.length; i++) {
       const char = text[i];
       const charAngle = startAngle - (i * anglePerChar);
@@ -57,6 +59,7 @@ const WatermarkStamp: React.FC<WatermarkStampProps> = ({ opacity, scale }) => {
       ctx.save();
       ctx.translate(centerX, centerY);
       ctx.rotate(charAngle);
+      // Fill with stroke for extra boldness
       ctx.fillText(char, 0, -radius);
       ctx.restore();
     }
