@@ -1,8 +1,18 @@
-import React, { useState, useRef } from 'react';
-import { X, Upload, Trash2, Edit2, Eye, EyeOff } from 'lucide-react';
-import { CardImage } from '../types';
+import React, { useState, useRef, useMemo } from 'react';
+import { X, Upload, Trash2, Edit2, Eye, EyeOff, Tag, Plus, Settings } from 'lucide-react';
+import { CardImage, CardColor } from '../types';
 import { fileToDataUrl } from '../services/imageProcessor';
 import CardPreview from './CardPreview';
+
+const MANA_COLORS: { value: CardColor; label: string; color: string }[] = [
+  { value: 'white', label: 'Blanco', color: 'bg-yellow-100' },
+  { value: 'blue', label: 'Azul', color: 'bg-blue-500' },
+  { value: 'black', label: 'Negro', color: 'bg-slate-800' },
+  { value: 'red', label: 'Rojo', color: 'bg-red-600' },
+  { value: 'green', label: 'Verde', color: 'bg-green-600' },
+  { value: 'multicolor', label: 'Multicolor', color: 'bg-gradient-to-r from-yellow-400 via-red-500 to-green-500' },
+  { value: 'colorless', label: 'Incoloro', color: 'bg-gray-400' },
+];
 
 interface AdminPanelProps {
   cards: CardImage[];
@@ -34,6 +44,23 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<string>('');
 
+  // Form states for card metadata
+  const [formName, setFormName] = useState('');
+  const [formNickname, setFormNickname] = useState('');
+  const [formColors, setFormColors] = useState<CardColor[]>([]);
+  const [formTags, setFormTags] = useState<string[]>([]);
+  const [newTagInput, setNewTagInput] = useState('');
+  const [showTagManager, setShowTagManager] = useState(false);
+
+  // Extract all existing tags from cards
+  const existingTags = useMemo(() => {
+    const tags = new Set<string>();
+    cards.forEach(card => {
+      card.tags?.forEach(tag => tags.add(tag));
+    });
+    return Array.from(tags).sort();
+  }, [cards]);
+
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
@@ -47,10 +74,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
       try {
         setUploadStatus(`Procesando ${i + 1}/${totalFiles}: ${file.name.substring(0, 20)}...`);
         const dataUrl = await fileToDataUrl(file);
+
+        // Use form metadata if provided, else use filename
+        const cardName = formName || file.name.replace(/\.[^/.]+$/, '');
+
         const newCard: CardImage = {
           id: Math.random().toString(36).substr(2, 9),
-          name: file.name.replace(/\.[^/.]+$/, ''),
+          name: cardName,
+          nickname: formNickname || undefined,
           dataUrl,
+          colors: formColors.length > 0 ? formColors : undefined,
+          tags: formTags.length > 0 ? formTags : undefined,
           createdAt: new Date(),
         };
         setUploadProgress(((i + 0.5) / totalFiles) * 100);
@@ -72,6 +106,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
       setUploadProgress(0);
       setUploadStatus('');
     }, 2000);
+
+    // Reset form
+    setFormName('');
+    setFormNickname('');
+    setFormColors([]);
+    setFormTags([]);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -102,47 +142,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-          {/* Upload Section */}
-          <div className="bg-slate-900/50 rounded-xl border border-blue-500/20 p-6">
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <Upload size={20} className="text-blue-400" />
-              Cargar Nuevas Cartas
-            </h3>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handleFileSelect}
-              className="hidden"
-              disabled={isUploading}
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2"
-            >
-              <Upload size={18} />
-              {isUploading ? `Cargando... ${Math.round(uploadProgress)}%` : 'Seleccionar Imágenes'}
-            </button>
-
-            {/* Progress Bar */}
-            {isUploading && (
-              <div className="mt-4 space-y-2">
-                <div className="w-full bg-slate-700 rounded-full h-3 overflow-hidden border border-blue-500/30">
-                  <div
-                    className="bg-gradient-to-r from-blue-500 to-blue-400 h-full transition-all duration-300"
-                    style={{ width: `${uploadProgress}%` }}
-                  />
-                </div>
-                {uploadStatus && (
-                  <p className="text-xs text-blue-300 text-center">{uploadStatus}</p>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Watermark Calibration Section */}
+          {/* 1. Watermark Calibration Section - PRIMERO */}
           <div className="bg-slate-900/50 rounded-xl border border-blue-500/20 p-6">
             <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
               <Eye size={20} className="text-amber-400" />
@@ -206,10 +206,211 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
           </div>
 
-          {/* Cards Management Section */}
+          {/* 2. Card Metadata Form Section */}
           <div className="bg-slate-900/50 rounded-xl border border-blue-500/20 p-6">
-            <h3 className="text-lg font-bold text-white mb-4">
-              Gestionar Cartas ({cards.length})
+            <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+              <Edit2 size={20} className="text-purple-400" />
+              Información de la Carta
+            </h3>
+
+            <div className="space-y-4">
+              {/* Name Input */}
+              <div>
+                <label className="text-white text-sm font-semibold block mb-2">Nombre (opcional)</label>
+                <input
+                  type="text"
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
+                  placeholder="Nombre personalizado de la carta"
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-sm"
+                />
+              </div>
+
+              {/* Nickname Input */}
+              <div>
+                <label className="text-white text-sm font-semibold block mb-2">Apodo (opcional)</label>
+                <input
+                  type="text"
+                  value={formNickname}
+                  onChange={(e) => setFormNickname(e.target.value)}
+                  placeholder="Apodo o variante"
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-sm"
+                />
+              </div>
+
+              {/* Mana Color Selection */}
+              <div>
+                <label className="text-white text-sm font-semibold block mb-3">Color de Maná</label>
+                <div className="flex flex-wrap gap-2">
+                  {MANA_COLORS.map((mana) => (
+                    <button
+                      key={mana.value}
+                      onClick={() =>
+                        setFormColors(prev =>
+                          prev.includes(mana.value)
+                            ? prev.filter(c => c !== mana.value)
+                            : [...prev, mana.value]
+                        )
+                      }
+                      className={`px-3 py-2 rounded-lg border-2 transition-all text-xs font-semibold ${
+                        formColors.includes(mana.value)
+                          ? `border-blue-500 ${mana.color} bg-opacity-50`
+                          : `border-slate-600 bg-slate-800 text-slate-300 hover:border-blue-500/50`
+                      }`}
+                    >
+                      {mana.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tags Selection */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-white text-sm font-semibold flex items-center gap-2">
+                    <Tag size={16} />
+                    Etiquetas
+                  </label>
+                  <button
+                    onClick={() => setShowTagManager(!showTagManager)}
+                    className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                  >
+                    <Settings size={14} />
+                    Gestor
+                  </button>
+                </div>
+
+                {/* Tag Selection */}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {existingTags.map((tag) => (
+                    <button
+                      key={tag}
+                      onClick={() =>
+                        setFormTags(prev =>
+                          prev.includes(tag)
+                            ? prev.filter(t => t !== tag)
+                            : [...prev, tag]
+                        )
+                      }
+                      className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                        formTags.includes(tag)
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Add New Tag */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newTagInput}
+                    onChange={(e) => setNewTagInput(e.target.value)}
+                    placeholder="Nueva etiqueta..."
+                    className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-sm"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && newTagInput.trim()) {
+                        setFormTags(prev => [...new Set([...prev, newTagInput.trim()])]);
+                        setNewTagInput('');
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={() => {
+                      if (newTagInput.trim()) {
+                        setFormTags(prev => [...new Set([...prev, newTagInput.trim()])]);
+                        setNewTagInput('');
+                      }
+                    }}
+                    className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-1"
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Tag Manager Panel */}
+              {showTagManager && (
+                <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700/50 space-y-3">
+                  <h4 className="text-white font-semibold text-sm">Gestor de Etiquetas</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {existingTags.map((tag) => (
+                      <div
+                        key={tag}
+                        className="flex items-center gap-2 px-3 py-1 bg-slate-700 rounded-full text-sm"
+                      >
+                        <span className="text-white">{tag}</span>
+                        <button
+                          onClick={() => {
+                            // Remove tag from all cards
+                            cards.forEach(card => {
+                              if (card.tags?.includes(tag)) {
+                                onUpdateCard(card.id, {
+                                  tags: card.tags.filter(t => t !== tag)
+                                }).catch(err => console.error('Error removing tag:', err));
+                              }
+                            });
+                          }}
+                          className="text-red-400 hover:text-red-300"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 3. Upload Section */}
+          <div className="bg-slate-900/50 rounded-xl border border-blue-500/20 p-6">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <Upload size={20} className="text-blue-400" />
+              Cargar Imágenes
+            </h3>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleFileSelect}
+              className="hidden"
+              disabled={isUploading}
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2"
+            >
+              <Upload size={18} />
+              {isUploading ? `Cargando... ${Math.round(uploadProgress)}%` : 'Seleccionar Imágenes'}
+            </button>
+
+            {/* Progress Bar */}
+            {isUploading && (
+              <div className="mt-4 space-y-2">
+                <div className="w-full bg-slate-700 rounded-full h-3 overflow-hidden border border-blue-500/30">
+                  <div
+                    className="bg-gradient-to-r from-blue-500 to-blue-400 h-full transition-all duration-300"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+                {uploadStatus && (
+                  <p className="text-xs text-blue-300 text-center">{uploadStatus}</p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* 4. Cards Management Section */}
+          <div className="bg-slate-900/50 rounded-xl border border-blue-500/20 p-6">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <Eye size={20} className="text-green-400" />
+              Cartas Cargadas ({cards.length})
             </h3>
 
             {cards.length === 0 ? (
