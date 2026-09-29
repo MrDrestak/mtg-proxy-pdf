@@ -451,13 +451,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                     className="relative bg-slate-800/50 rounded-lg border border-slate-700/50 overflow-hidden hover:border-blue-500/50 transition-all flex flex-col h-full group"
                   >
                     {/* Card Preview - fills available space */}
-                    <div className="aspect-[63/88] bg-black flex-shrink-0">
+                    <div className="aspect-[63/88] bg-black flex-shrink-0 overflow-hidden">
                       <CardPreview
                         card={card}
                         foilMode={false}
                         showWatermark={showWatermark}
                         watermarkOpacity={watermarkOpacity}
                         watermarkScale={watermarkScale}
+                        fillContainer={true}
                       />
                     </div>
 
