@@ -464,10 +464,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
 
                     {/* Card Info */}
                     <div className="p-2 space-y-1 border-t border-slate-700/50 flex-1 overflow-hidden flex flex-col">
+                      {/* Nickname - Displayed First and Larger */}
+                      {card.nickname && (
+                        <div className="mb-1">
+                          <p className="text-amber-300 text-sm font-semibold truncate">{card.nickname}</p>
+                        </div>
+                      )}
+
                       {/* Name - Read Only */}
                       <div>
                         <p className="text-xs text-slate-400 mb-1">Nombre (no editable)</p>
-                        <p className="text-white text-sm font-semibold truncate">{card.name}</p>
+                        <p className={`${card.nickname ? 'text-xs' : 'text-sm'} text-white font-semibold truncate`}>{card.name}</p>
                       </div>
 
                       {editingCardId === card.id ? (
@@ -519,12 +526,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                         </div>
                       ) : (
                         <div className="space-y-2 flex flex-col h-full">
-                          {/* Display Nickname */}
-                          {card.nickname && (
-                            <p className="text-amber-300 text-xs font-semibold truncate">
-                              {card.nickname}
-                            </p>
-                          )}
+                          {/* Display Nickname - Already shown above, skip here */}
 
                           {/* Display Tags */}
                           {card.tags && card.tags.length > 0 && (

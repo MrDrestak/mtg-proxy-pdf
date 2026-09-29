@@ -436,10 +436,10 @@ const App: React.FC = () => {
                           />
                         </div>
                         <div className="mt-2 px-2">
-                          <p className="text-sm font-semibold text-white truncate">{card.name}</p>
                           {card.nickname && (
-                            <p className="text-xs text-amber-300 truncate">{card.nickname}</p>
+                            <p className="text-sm font-semibold text-amber-300 truncate">{card.nickname}</p>
                           )}
+                          <p className={`${card.nickname ? 'text-xs' : 'text-sm'} font-semibold text-white truncate`}>{card.name}</p>
                         </div>
                       </div>
                     ))}
