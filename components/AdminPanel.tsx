@@ -435,14 +435,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
             {cards.length === 0 ? (
               <p className="text-slate-400 text-center py-8">No hay cartas cargadas</p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                 {cards.map((card) => (
                   <div
                     key={card.id}
-                    className="bg-slate-800/50 rounded-lg border border-slate-700/50 overflow-hidden hover:border-blue-500/50 transition-all"
+                    className="bg-slate-800/50 rounded-lg border border-slate-700/50 overflow-hidden hover:border-blue-500/50 transition-all flex flex-col h-full"
                   >
-                    {/* Card Preview */}
-                    <div className="aspect-[63/88] bg-black">
+                    {/* Card Preview - fills available space */}
+                    <div className="aspect-[63/88] bg-black flex-shrink-0">
                       <CardPreview
                         card={card}
                         foilMode={false}
@@ -453,7 +453,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                     </div>
 
                     {/* Card Info */}
-                    <div className="p-3 space-y-3 border-t border-slate-700/50">
+                    <div className="p-2 space-y-2 border-t border-slate-700/50 flex-1 overflow-hidden flex flex-col">
                       {/* Name - Read Only */}
                       <div>
                         <p className="text-xs text-slate-400 mb-1">Nombre (no editable)</p>

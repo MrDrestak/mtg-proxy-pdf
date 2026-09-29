@@ -28,17 +28,17 @@ const WatermarkStamp: React.FC<WatermarkStampProps> = ({ opacity, scale }) => {
     // Clear canvas
     ctx.clearRect(0, 0, cardWidth, cardHeight);
 
-    // Watermark properties - circular seal with text forming the circle
-    const radius = (cardHeight * scale) / 115; // Larger radius for 30% bigger default visibility
+    // Watermark properties - small circular seal centered in card
+    const radius = (cardHeight * scale) / 250; // Smaller radius for subtle centered watermark
     const centerX = cardWidth / 2;
-    const centerY = cardHeight / 2.5; // Center vertically
+    const centerY = cardHeight / 2; // Center vertically in middle of card
 
     // Draw circular watermark seal with text path
     ctx.save();
     ctx.globalAlpha = opacity / 100;
     ctx.fillStyle = '#1E3FE0'; // Luminous Blue
-    // Extra bold: use very large font with 900 weight
-    const fontSize = Math.max(20, 24 * (scale / 100));
+    // Bold font
+    const fontSize = Math.max(12, 14 * (scale / 100));
     ctx.font = `900 ${fontSize}px Inter, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
