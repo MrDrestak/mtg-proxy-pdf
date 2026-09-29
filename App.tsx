@@ -404,7 +404,7 @@ const App: React.FC = () => {
                     <p className="text-slate-400">No hay cartas que coincidan con los filtros</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
                     {filteredGalleryCards.map((card) => (
                       <div
                         key={card.id}
