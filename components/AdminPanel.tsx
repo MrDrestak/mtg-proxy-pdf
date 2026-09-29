@@ -378,6 +378,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                     <Plus size={16} />
                     Agregar
                   </button>
+                  <button
+                    onClick={() => setShowTagManager(true)}
+                    className="w-full px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg transition-colors flex items-center justify-center gap-1 font-semibold text-sm"
+                  >
+                    <Settings size={16} />
+                    Editar Etiquetas
+                  </button>
                 </div>
               </div>
 
@@ -563,6 +570,69 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Tag Manager Modal */}
+      {showTagManager && (
+        <>
+          <div className="fixed inset-0 bg-black/80 z-40" onClick={() => setShowTagManager(false)} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-slate-900 border border-blue-500/30 rounded-2xl shadow-2xl max-w-md w-full max-h-[70vh] overflow-y-auto">
+              {/* Header */}
+              <div className="sticky top-0 flex items-center justify-between px-6 py-4 border-b border-blue-500/20 bg-slate-950/80">
+                <h3 className="text-lg font-black text-white">Editar Etiquetas</h3>
+                <button
+                  onClick={() => setShowTagManager(false)}
+                  className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+                >
+                  <X size={20} className="text-slate-300" />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 space-y-4">
+                {existingTags.length === 0 ? (
+                  <p className="text-slate-400 text-center py-6">No hay etiquetas para editar</p>
+                ) : (
+                  <div className="space-y-2">
+                    {existingTags.map((tag) => (
+                      <div key={tag} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700/50 hover:border-blue-500/50 transition-all">
+                        <span className="text-white font-semibold text-sm">{tag}</span>
+                        <button
+                          onClick={() => {
+                            if (confirm(`¿Eliminar etiqueta "${tag}"?`)) {
+                              // Remove tag from all cards
+                              cards.forEach(card => {
+                                if (card.tags?.includes(tag)) {
+                                  const updatedTags = card.tags.filter(t => t !== tag);
+                                  onUpdateCard(card.id, { tags: updatedTags }).catch(err => console.error('Error updating card:', err));
+                                }
+                              });
+                            }
+                          }}
+                          className="p-1.5 bg-red-600/40 hover:bg-red-600/60 text-red-300 rounded transition-colors"
+                          title="Eliminar etiqueta"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="sticky bottom-0 flex gap-2 p-6 bg-slate-950/80 border-t border-blue-500/20">
+                <button
+                  onClick={() => setShowTagManager(false)}
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all text-sm"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
