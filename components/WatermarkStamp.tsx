@@ -15,10 +15,21 @@ const WatermarkStamp: React.FC<WatermarkStampProps> = ({ opacity, scale }) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Get actual canvas display size from parent
-    const rect = canvas.parentElement?.getBoundingClientRect();
-    const cardWidth = rect?.width || 236;
-    const cardHeight = rect?.height || 330;
+    // Get actual canvas display size from parent or computed style
+    const parent = canvas.parentElement;
+    let cardWidth = 236;
+    let cardHeight = 330;
+
+    if (parent) {
+      const rect = parent.getBoundingClientRect();
+      if (rect.width > 0) cardWidth = rect.width;
+      if (rect.height > 0) cardHeight = rect.height;
+
+      // If height is still 0 (aspect ratio not computed), calculate from width
+      if (cardHeight === 0 && cardWidth > 0) {
+        cardHeight = (cardWidth * 88) / 63; // MTG card aspect ratio
+      }
+    }
 
     // Set canvas resolution to match display size (2x for crisp rendering)
     canvas.width = cardWidth * 2;
