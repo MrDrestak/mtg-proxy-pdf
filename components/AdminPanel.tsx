@@ -17,6 +17,7 @@ interface AdminPanelProps {
   cards: CardImage[];
   onAddCard: (card: CardImage, imageData?: string) => Promise<void>;
   onUpdateCard: (cardId: string, updates: Partial<CardImage>) => Promise<void>;
+  onRemoveCard?: (cardId: string) => Promise<void>;
   watermarkOpacity: number;
   watermarkScale: number;
   showWatermark: boolean;
@@ -28,6 +29,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
   cards,
   onAddCard,
   onUpdateCard,
+  onRemoveCard,
   watermarkOpacity,
   watermarkScale,
   showWatermark,
@@ -528,7 +530,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                           )}
 
                           {/* Edit Button Section */}
-                          <div className="mt-auto pt-2 border-t border-slate-700/30">
+                          <div className="mt-auto pt-2 border-t border-slate-700/30 space-y-1.5">
                             <button
                               onClick={() => startEditingCard(card)}
                               className="w-full px-2 py-1.5 bg-blue-600/40 hover:bg-blue-600/60 text-blue-300 text-xs font-semibold rounded flex items-center justify-center gap-1 transition-colors"
@@ -536,6 +538,19 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                               <Edit2 size={12} />
                               Editar
                             </button>
+                            {onRemoveCard && (
+                              <button
+                                onClick={() => {
+                                  if (confirm(`¿Eliminar "${card.name}"?`)) {
+                                    onRemoveCard(card.id).catch(err => console.error('Error removing card:', err));
+                                  }
+                                }}
+                                className="w-full px-2 py-1.5 bg-red-600/40 hover:bg-red-600/60 text-red-300 text-xs font-semibold rounded flex items-center justify-center gap-1 transition-colors"
+                              >
+                                <Trash2 size={12} />
+                                Eliminar
+                              </button>
+                            )}
                           </div>
                         </div>
                       )}

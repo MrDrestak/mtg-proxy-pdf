@@ -197,6 +197,12 @@ const App: React.FC = () => {
     await updateCard(cardId, updates);
   };
 
+  const handleRemoveCard = async (cardId: string) => {
+    await removeCard(cardId);
+    // Remove from wishlist if it was there
+    setWishlistCards(prev => prev.filter(c => c.id !== cardId));
+  };
+
   const handleWatermarkChange = (field: 'opacity' | 'scale' | 'show', value: number | boolean) => {
     if (field === 'opacity') setWatermarkOpacity(value as number);
     else if (field === 'scale') setWatermarkScale(value as number);
@@ -750,6 +756,7 @@ const App: React.FC = () => {
           cards={cards}
           onAddCard={handleAddCard}
           onUpdateCard={handleUpdateCard}
+          onRemoveCard={handleRemoveCard}
           watermarkOpacity={watermarkOpacity}
           watermarkScale={watermarkScale}
           showWatermark={showWatermark}
