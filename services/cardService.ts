@@ -10,9 +10,9 @@ import {
   QueryConstraint,
   Timestamp
 } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { db, storage } from './firebaseConfig';
+import { db } from './firebaseConfig';
 import { CardImage } from '../types';
+import { put, del } from '@vercel/blob';
 
 const CARDS_COLLECTION = 'cards';
 
@@ -37,21 +37,16 @@ export async function uploadCardImage(cardId: string, imageData: string): Promis
     const blob = new Blob([u8arr], { type: mimeType });
     console.log('[uploadCardImage] Blob created:', { size: blob.size, type: blob.type });
 
-    // Create storage reference
-    const storageRef = ref(storage, `cards/${cardId}/image.jpg`);
-    console.log('[uploadCardImage] Storage reference created');
+    // Upload to Vercel Blob
+    console.log('[uploadCardImage] Starting Vercel Blob upload...');
+    const result = await put(
+      `cards/${cardId}/image.jpg`,
+      blob,
+      { access: 'public' }
+    );
+    console.log('[uploadCardImage] Upload completed, URL:', result.url);
 
-    // Upload file
-    console.log('[uploadCardImage] Starting uploadBytes...');
-    await uploadBytes(storageRef, blob);
-    console.log('[uploadCardImage] uploadBytes completed');
-
-    // Get download URL
-    console.log('[uploadCardImage] Getting download URL...');
-    const downloadURL = await getDownloadURL(storageRef);
-    console.log('[uploadCardImage] Download URL obtained:', downloadURL);
-
-    return downloadURL;
+    return result.url;
   } catch (error) {
     console.error('Error uploading card image:', error);
     throw error;
@@ -59,12 +54,12 @@ export async function uploadCardImage(cardId: string, imageData: string): Promis
 }
 
 /**
- * Delete a card image from Firebase Storage
+ * Delete a card image from Vercel Blob Storage
  */
 export async function deleteCardImage(cardId: string): Promise<void> {
   try {
-    const storageRef = ref(storage, `cards/${cardId}/image.jpg`);
-    await deleteObject(storageRef);
+    const blobUrl = `https://blob.vercel.sh/cards/${cardId}/image.jpg`;
+    await del(blobUrl);
   } catch (error) {
     console.error('Error deleting card image:', error);
     // Don't throw - storage file may not exist
