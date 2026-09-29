@@ -62,57 +62,79 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
   }, [cards]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('[AdminPanel] handleFileSelect triggered');
     const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
+    console.log('[AdminPanel] Files selected:', files.length);
+
+    if (files.length === 0) {
+      console.warn('[AdminPanel] No files selected');
+      return;
+    }
 
     setIsUploading(true);
     setUploadStatus('');
     const totalFiles = files.length;
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      try {
-        setUploadStatus(`Procesando ${i + 1}/${totalFiles}: ${file.name.substring(0, 20)}...`);
-        const dataUrl = await fileToDataUrl(file);
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        console.log(`[AdminPanel] Processing file ${i + 1}/${totalFiles}:`, file.name);
 
-        // Use form metadata if provided, else use filename
-        const cardName = formName || file.name.replace(/\.[^/.]+$/, '');
+        try {
+          setUploadStatus(`Procesando ${i + 1}/${totalFiles}: ${file.name.substring(0, 20)}...`);
+          const dataUrl = await fileToDataUrl(file);
+          console.log(`[AdminPanel] File converted to dataUrl: ${file.name}`);
 
-        const newCard: CardImage = {
-          id: Math.random().toString(36).substr(2, 9),
-          name: cardName,
-          nickname: formNickname || undefined,
-          dataUrl,
-          colors: formColors.length > 0 ? formColors : undefined,
-          tags: formTags.length > 0 ? formTags : undefined,
-          createdAt: new Date(),
-        };
-        setUploadProgress(((i + 0.5) / totalFiles) * 100);
+          // Use form metadata if provided, else use filename
+          const cardName = formName || file.name.replace(/\.[^/.]+$/, '');
 
-        // Firebase save is async
-        setUploadStatus(`Guardando en Firebase: ${file.name.substring(0, 20)}...`);
-        await onAddCard(newCard);
-        setUploadProgress(((i + 1) / totalFiles) * 100);
-      } catch (error) {
-        console.error('Error processing image:', error);
-        setUploadStatus(`Error: ${file.name}`);
+          const newCard: CardImage = {
+            id: Math.random().toString(36).substr(2, 9),
+            name: cardName,
+            nickname: formNickname || undefined,
+            dataUrl,
+            colors: formColors.length > 0 ? formColors : undefined,
+            tags: formTags.length > 0 ? formTags : undefined,
+            createdAt: new Date(),
+          };
+          setUploadProgress(((i + 0.5) / totalFiles) * 100);
+
+          // Firebase save is async
+          setUploadStatus(`Guardando en Firebase: ${file.name.substring(0, 20)}...`);
+          console.log(`[AdminPanel] Uploading to Firebase: ${file.name}`);
+          await onAddCard(newCard);
+          console.log(`[AdminPanel] Successfully uploaded: ${file.name}`);
+
+          setUploadProgress(((i + 1) / totalFiles) * 100);
+        } catch (error) {
+          console.error(`[AdminPanel] Error processing file ${file.name}:`, error);
+          setUploadStatus(`Error: ${file.name} - ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
       }
+
+      setIsUploading(false);
+      setUploadStatus('¡Carga completada!');
+      console.log('[AdminPanel] Upload complete');
+
+      // Keep progress at 100% for 2 seconds, then reset
+      setTimeout(() => {
+        setUploadProgress(0);
+        setUploadStatus('');
+      }, 2000);
+
+      // Reset form
+      setFormName('');
+      setFormNickname('');
+      setFormColors([]);
+      setFormTags([]);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error) {
+      console.error('[AdminPanel] Unexpected error in handleFileSelect:', error);
+      setIsUploading(false);
+      setUploadStatus(`Error inesperado: ${error instanceof Error ? error.message : 'Unknown'}`);
     }
-
-    setIsUploading(false);
-    setUploadStatus('¡Carga completada!');
-    // Keep progress at 100% for 2 seconds, then reset
-    setTimeout(() => {
-      setUploadProgress(0);
-      setUploadStatus('');
-    }, 2000);
-
-    // Reset form
-    setFormName('');
-    setFormNickname('');
-    setFormColors([]);
-    setFormTags([]);
-    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const startEditingNickname = (cardId: string, currentNickname: string) => {
