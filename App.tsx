@@ -15,9 +15,19 @@ import { generatePDF } from './services/pdfGenerator';
 import { generateSVG } from './services/svgGenerator';
 import { processCardImageWithBlackCorners, ImageProcessOptions } from './services/imageProcessor';
 import { useSupabaseCards } from './hooks/useSupabaseCards';
+import { useWatermarkSettings } from './hooks/useWatermarkSettings';
 
 const App: React.FC = () => {
   const { cards, addCard, removeCard, updateCard, refreshCards } = useSupabaseCards();
+  const {
+    watermarkOpacity,
+    watermarkScale,
+    showWatermark,
+    updateOpacity: onWatermarkOpacityChange,
+    updateScale: onWatermarkScaleChange,
+    updateShowWatermark: onWatermarkVisibilityChange
+  } = useWatermarkSettings();
+
   const [activeTab, setActiveTab] = useState<'gallery' | 'print'>('gallery');
   const [isExporting, setIsExporting] = useState(false);
   const [paperFormat, setPaperFormat] = useState<PaperFormat>('a4');
@@ -32,9 +42,6 @@ const App: React.FC = () => {
   const [isManagerOpen, setIsManagerOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [isListingOpen, setIsListingOpen] = useState(false);
-  const [watermarkOpacity, setWatermarkOpacity] = useState(35);
-  const [watermarkScale, setWatermarkScale] = useState(100);
-  const [showWatermark, setShowWatermark] = useState(true);
   const [filterMode, setFilterMode] = useState<'all' | 'new'>('all');
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
@@ -204,10 +211,18 @@ const App: React.FC = () => {
     setWishlistCards(prev => prev.filter(c => c.id !== cardId));
   };
 
-  const handleWatermarkChange = (field: 'opacity' | 'scale' | 'show', value: number | boolean) => {
-    if (field === 'opacity') setWatermarkOpacity(value as number);
-    else if (field === 'scale') setWatermarkScale(value as number);
-    else if (field === 'show') setShowWatermark(value as boolean);
+  const handleWatermarkChange = async (field: 'opacity' | 'scale' | 'show', value: number | boolean) => {
+    try {
+      if (field === 'opacity') {
+        await onWatermarkOpacityChange(value as number);
+      } else if (field === 'scale') {
+        await onWatermarkScaleChange(value as number);
+      } else if (field === 'show') {
+        await onWatermarkVisibilityChange(value as boolean);
+      }
+    } catch (err) {
+      console.error('Failed to update watermark settings:', err);
+    }
   };
 
   // Wishlist handlers
