@@ -793,7 +793,7 @@ const App: React.FC = () => {
       {/* Footer */}
       <footer className="bg-slate-950/80 border-t border-blue-500/20 mt-auto py-4 text-center">
         <p className="text-xs text-slate-400 font-medium">
-          Elaborado por Walter Pacora Rodriguez (108763) • MTG Proxy Labs © 2026
+          Elaborado por Walter Pacora Rodriguez (108763) • MTG Proxy Labs © 2026 • v2.1
         </p>
       </footer>
     </div>
