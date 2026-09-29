@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Upload, Trash2, Layout, Info, FileText, List, Lock } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { CardImage, PageLayout, CardColor } from './types';
@@ -13,9 +13,10 @@ import GalleryFilters from './components/GalleryFilters';
 import { generatePDF } from './services/pdfGenerator';
 import { generateSVG } from './services/svgGenerator';
 import { processCardImageWithBlackCorners, ImageProcessOptions } from './services/imageProcessor';
+import { useFirebaseCards } from './hooks/useFirebaseCards';
 
 const App: React.FC = () => {
-  const [cards, setCards] = useState<CardImage[]>([]);
+  const { cards, addCard, removeCard, updateCard, refreshCards } = useFirebaseCards();
   const [activeTab, setActiveTab] = useState<'gallery' | 'print'>('gallery');
   const [isExporting, setIsExporting] = useState(false);
   const [paperFormat, setPaperFormat] = useState<PaperFormat>('a4');
@@ -66,28 +67,8 @@ const App: React.FC = () => {
     boostContrast: foilMode && boostContrast
   }), [fixRoundedCorners, foilMode, deepBlackLevel, boostContrast]);
 
-  const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-
-    Array.from(files).forEach((file: File) => {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        const rawDataUrl = event.target?.result as string;
-        const processedDataUrl = await processCardImageWithBlackCorners(rawDataUrl, currentProcessOptions);
-
-        setCards(prev => [...prev, {
-          id: uuidv4(),
-          name: file.name.replace(/\.[^.]+$/, ''),
-          dataUrl: processedDataUrl,
-          originalDataUrl: rawDataUrl,
-          type: file.type,
-          createdAt: new Date()
-        }]);
-      };
-      reader.readAsDataURL(file);
-    });
-  }, [currentProcessOptions]);
+  // REMOVED: File upload is now handled by AdminPanel (Firebase) or Print tab (temporary)
+  // Gallery tab only displays cards from Firebase
 
   const applyProcessSettings = async (newOpts: Partial<ImageProcessOptions>) => {
     const effectiveOpts: ImageProcessOptions = {
@@ -97,18 +78,15 @@ const App: React.FC = () => {
 
     if (cards.length === 0) return;
 
-    const updatedCards = await Promise.all(
-      cards.map(async (card) => {
-        const sourceUrl = card.originalDataUrl || card.dataUrl;
-        const newUrl = await processCardImageWithBlackCorners(sourceUrl, effectiveOpts);
-        return {
-          ...card,
-          dataUrl: newUrl,
-          originalDataUrl: sourceUrl
-        };
-      })
-    );
-    setCards(updatedCards);
+    // Update each card with reprocessed image in Firebase
+    for (const card of cards) {
+      const sourceUrl = card.originalDataUrl || card.dataUrl;
+      const newUrl = await processCardImageWithBlackCorners(sourceUrl, effectiveOpts);
+      await updateCard(card.id, {
+        dataUrl: newUrl,
+        originalDataUrl: sourceUrl
+      });
+    }
   };
 
   const toggleFixCorners = async (enabled: boolean) => {
@@ -139,14 +117,9 @@ const App: React.FC = () => {
     }
   };
 
-  const removeCard = (id: string) => {
-    setCards(prev => prev.filter(c => c.id !== id));
-    if (selectedCardId === id) setSelectedCardId(null);
-  };
-
   const clearAll = () => {
     if (confirm('¿Seguro que quieres borrar todas las cartas?')) {
-      setCards([]);
+      cards.forEach(card => removeCard(card.id));
       setSelectedCardId(null);
     }
   };
@@ -216,16 +189,12 @@ const App: React.FC = () => {
     setIsAdminLoggedIn(false);
   };
 
-  const handleAddCard = (card: CardImage) => {
-    setCards(prev => [...prev, card]);
+  const handleAddCard = async (card: CardImage) => {
+    await addCard(card);
   };
 
-  const handleUpdateCard = (cardId: string, updates: Partial<CardImage>) => {
-    setCards(prev =>
-      prev.map(card =>
-        card.id === cardId ? { ...card, ...updates } : card
-      )
-    );
+  const handleUpdateCard = async (cardId: string, updates: Partial<CardImage>) => {
+    await updateCard(cardId, updates);
   };
 
   const handleWatermarkChange = (field: 'opacity' | 'scale' | 'show', value: number | boolean) => {
@@ -380,12 +349,6 @@ const App: React.FC = () => {
                 <Trash2 size={16} />
                 <span className="hidden sm:inline">Limpiar</span>
               </button>
-
-              <label className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer shadow-lg shadow-blue-500/20">
-                <Upload size={16} />
-                <span className="hidden sm:inline">Subir</span>
-                <input type="file" multiple accept="image/*" onChange={handleFileUpload} className="hidden" />
-              </label>
             </div>
           </div>
         </div>
@@ -403,13 +366,15 @@ const App: React.FC = () => {
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">Galería de Arte</h2>
                 <p className="text-slate-400 max-w-md mx-auto mb-8 text-sm sm:text-base">
-                  Sube tus mejores cartas de MTG y crea una galería personalizada. Protégelas con marcas de agua y comparte tu colección.
+                  Accede como Admin para subir tus mejores cartas de MTG. Crea una galería personalizada con marcas de agua.
                 </p>
-                <label className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-lg transition-all cursor-pointer shadow-lg shadow-blue-500/30 active:scale-95">
-                  <Upload size={20} />
-                  Empezar ahora
-                  <input type="file" multiple accept="image/*" onChange={handleFileUpload} className="hidden" />
-                </label>
+                <button
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold rounded-lg transition-all shadow-lg shadow-amber-500/30 active:scale-95"
+                >
+                  <Lock size={20} />
+                  Entrar como Admin
+                </button>
               </div>
             ) : (
               <div className="space-y-8">

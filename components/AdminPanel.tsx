@@ -6,9 +6,9 @@ import CardPreview from './CardPreview';
 
 interface AdminPanelProps {
   cards: CardImage[];
-  onAddCard: (card: CardImage) => void;
-  onRemoveCard: (cardId: string) => void;
-  onUpdateCard: (cardId: string, updates: Partial<CardImage>) => void;
+  onAddCard: (card: CardImage) => Promise<void>;
+  onRemoveCard: (cardId: string) => Promise<void>;
+  onUpdateCard: (cardId: string, updates: Partial<CardImage>) => Promise<void>;
   watermarkOpacity: number;
   watermarkScale: number;
   showWatermark: boolean;
@@ -50,7 +50,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
           dataUrl,
           createdAt: new Date(),
         };
-        onAddCard(newCard);
+        await onAddCard(newCard);
         setUploadProgress(((i + 1) / totalFiles) * 100);
       } catch (error) {
         console.error('Error processing image:', error);
@@ -67,8 +67,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
     setEditNickname(currentNickname || '');
   };
 
-  const saveNicknameEdit = (cardId: string) => {
-    onUpdateCard(cardId, { nickname: editNickname });
+  const saveNicknameEdit = async (cardId: string) => {
+    await onUpdateCard(cardId, { nickname: editNickname });
     setEditingCardId(null);
     setEditNickname('');
   };
@@ -220,7 +220,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                             autoFocus
                           />
                           <button
-                            onClick={() => saveNicknameEdit(card.id)}
+                            onClick={() => saveNicknameEdit(card.id).catch(err => console.error('Error saving nickname:', err))}
                             className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded transition-colors"
                           >
                             Guardar
@@ -242,7 +242,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
 
                       {/* Delete Button */}
                       <button
-                        onClick={() => onRemoveCard(card.id)}
+                        onClick={() => onRemoveCard(card.id).catch(err => console.error('Error removing card:', err))}
                         className="w-full px-3 py-1.5 bg-red-900/40 hover:bg-red-900/60 text-red-300 text-xs font-semibold rounded flex items-center justify-center gap-2 transition-colors"
                       >
                         <Trash2 size={14} />
