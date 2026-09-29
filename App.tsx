@@ -787,7 +787,6 @@ const App: React.FC = () => {
         onRemoveCard={handleRemoveFromWishlist}
         onCopyList={handleCopyWishlist}
         onDownloadList={handleDownloadWishlist}
-        onClearAll={handleClearWishlist}
       />
 
       {/* Footer */}
