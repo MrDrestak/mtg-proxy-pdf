@@ -32,17 +32,20 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
   const [editNickname, setEditNickname] = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<string>('');
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
     setIsUploading(true);
+    setUploadStatus('');
     const totalFiles = files.length;
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       try {
+        setUploadStatus(`Procesando ${i + 1}/${totalFiles}: ${file.name.substring(0, 20)}...`);
         const dataUrl = await fileToDataUrl(file);
         const newCard: CardImage = {
           id: Math.random().toString(36).substr(2, 9),
@@ -50,15 +53,25 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
           dataUrl,
           createdAt: new Date(),
         };
+        setUploadProgress(((i + 0.5) / totalFiles) * 100);
+
+        // Firebase save is async
+        setUploadStatus(`Guardando en Firebase: ${file.name.substring(0, 20)}...`);
         await onAddCard(newCard);
         setUploadProgress(((i + 1) / totalFiles) * 100);
       } catch (error) {
         console.error('Error processing image:', error);
+        setUploadStatus(`Error: ${file.name}`);
       }
     }
 
     setIsUploading(false);
-    setUploadProgress(0);
+    setUploadStatus('¡Carga completada!');
+    // Keep progress at 100% for 2 seconds, then reset
+    setTimeout(() => {
+      setUploadProgress(0);
+      setUploadStatus('');
+    }, 2000);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -112,6 +125,21 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
               <Upload size={18} />
               {isUploading ? `Cargando... ${Math.round(uploadProgress)}%` : 'Seleccionar Imágenes'}
             </button>
+
+            {/* Progress Bar */}
+            {isUploading && (
+              <div className="mt-4 space-y-2">
+                <div className="w-full bg-slate-700 rounded-full h-3 overflow-hidden border border-blue-500/30">
+                  <div
+                    className="bg-gradient-to-r from-blue-500 to-blue-400 h-full transition-all duration-300"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+                {uploadStatus && (
+                  <p className="text-xs text-blue-300 text-center">{uploadStatus}</p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Watermark Calibration Section */}
