@@ -15,12 +15,15 @@ const WatermarkStamp: React.FC<WatermarkStampProps> = ({ opacity, scale }) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Card dimensions in pixels (63mm × 88mm at 96 DPI ≈ 236px × 330px)
-    const cardWidth = 236;
-    const cardHeight = 330;
+    // Get actual canvas display size from parent
+    const rect = canvas.parentElement?.getBoundingClientRect();
+    const cardWidth = rect?.width || 236;
+    const cardHeight = rect?.height || 330;
 
-    canvas.width = cardWidth;
-    canvas.height = cardHeight;
+    // Set canvas resolution to match display size (2x for crisp rendering)
+    canvas.width = cardWidth * 2;
+    canvas.height = cardHeight * 2;
+    ctx.scale(2, 2);
 
     // Clear canvas
     ctx.clearRect(0, 0, cardWidth, cardHeight);
@@ -70,7 +73,21 @@ const WatermarkStamp: React.FC<WatermarkStampProps> = ({ opacity, scale }) => {
     ctx.fillText('PROTECTED', centerX, centerY);
 
     ctx.restore();
-  }, [opacity, scale]);
+  }, [opacity, scale]); // Re-render when opacity/scale changes AND when container resizes
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        // Trigger re-render by updating canvas
+        canvas.dispatchEvent(new Event('resize'));
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <canvas

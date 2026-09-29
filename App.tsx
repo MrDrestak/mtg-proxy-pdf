@@ -763,6 +763,7 @@ const App: React.FC = () => {
           watermarkScale={watermarkScale}
           showWatermark={showWatermark}
           onWatermarkChange={handleWatermarkChange}
+          onClearWishlist={handleClearWishlist}
           onClose={handleAdminLogout}
         />
       )}
@@ -787,7 +788,6 @@ const App: React.FC = () => {
         onRemoveCard={handleRemoveFromWishlist}
         onCopyList={handleCopyWishlist}
         onDownloadList={handleDownloadWishlist}
-        onClearAll={handleClearWishlist}
       />
 
       {/* Footer */}

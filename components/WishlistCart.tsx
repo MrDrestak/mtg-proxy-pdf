@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingCart, X } from 'lucide-react';
+import { CheckCircle2, X } from 'lucide-react';
 import { CardImage } from '../types';
 
 interface WishlistCartProps {
@@ -9,7 +9,6 @@ interface WishlistCartProps {
   onRemoveCard: (cardId: string) => void;
   onCopyList: () => void;
   onDownloadList: () => void;
-  onClearAll: () => void;
 }
 
 const WishlistCart: React.FC<WishlistCartProps> = ({
@@ -18,8 +17,7 @@ const WishlistCart: React.FC<WishlistCartProps> = ({
   onToggle,
   onRemoveCard,
   onCopyList,
-  onDownloadList,
-  onClearAll
+  onDownloadList
 }) => {
   return (
     <>
@@ -28,7 +26,7 @@ const WishlistCart: React.FC<WishlistCartProps> = ({
         onClick={onToggle}
         className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-30 flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-full shadow-2xl transition-all hover:scale-110 active:scale-95"
       >
-        <ShoppingCart size={20} />
+        <CheckCircle2 size={20} />
         <span className="hidden sm:inline">Mi Listado</span>
         <span className="flex items-center justify-center w-6 h-6 bg-red-600 rounded-full text-xs font-black">
           {cards.length}
@@ -63,7 +61,7 @@ const WishlistCart: React.FC<WishlistCartProps> = ({
             <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
               {cards.length === 0 ? (
                 <div className="text-center py-12">
-                  <ShoppingCart size={32} className="text-slate-400 mx-auto mb-3 opacity-50" />
+                  <CheckCircle2 size={32} className="text-slate-400 mx-auto mb-3 opacity-50" />
                   <p className="text-slate-400">Tu listado está vacío</p>
                   <p className="text-xs text-slate-500 mt-1">Haz clic en las cartas para añadirlas</p>
                 </div>
@@ -94,26 +92,18 @@ const WishlistCart: React.FC<WishlistCartProps> = ({
 
             {/* Footer Actions */}
             {cards.length > 0 && (
-              <div className="sticky bottom-0 flex flex-col gap-2 p-4 sm:p-6 bg-slate-950/80 border-t border-blue-500/20 backdrop-blur-xs">
-                <div className="flex gap-2">
-                  <button
-                    onClick={onCopyList}
-                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all text-sm"
-                  >
-                    Copiar Listado
-                  </button>
-                  <button
-                    onClick={onDownloadList}
-                    className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-all text-sm"
-                  >
-                    Descargar TXT
-                  </button>
-                </div>
+              <div className="sticky bottom-0 flex gap-2 p-4 sm:p-6 bg-slate-950/80 border-t border-blue-500/20 backdrop-blur-xs">
                 <button
-                  onClick={onClearAll}
-                  className="w-full px-4 py-2 bg-red-900/30 hover:bg-red-900/50 text-red-300 font-semibold rounded-lg transition-all text-sm border border-red-500/30"
+                  onClick={onCopyList}
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all text-sm"
                 >
-                  Vaciar Listado
+                  Copiar Listado
+                </button>
+                <button
+                  onClick={onDownloadList}
+                  className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-all text-sm"
+                >
+                  Descargar TXT
                 </button>
               </div>
             )}

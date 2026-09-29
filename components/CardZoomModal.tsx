@@ -35,32 +35,32 @@ const CardZoomModal: React.FC<CardZoomModalProps> = ({
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-gradient-to-b from-slate-900 to-black border border-blue-500/30 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
+        <div className="bg-gradient-to-b from-slate-900 to-black border border-blue-500/30 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[95vh] flex flex-col">
           {/* Header */}
-          <div className="sticky top-0 flex items-center justify-between px-4 sm:px-6 py-4 border-b border-blue-500/20 bg-slate-950/80 backdrop-blur-xs">
-            <div>
-              <h3 className="text-lg sm:text-xl font-black text-white">{card.name}</h3>
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-blue-500/20 bg-slate-950/80 backdrop-blur-xs flex-shrink-0">
+            <div className="min-w-0">
+              <h3 className="text-base sm:text-xl font-black text-white truncate">{card.name}</h3>
               {card.nickname && (
-                <p className="text-sm text-amber-300 font-semibold">{card.nickname}</p>
+                <p className="text-xs sm:text-sm text-amber-300 font-semibold truncate">{card.nickname}</p>
               )}
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+              className="p-2 hover:bg-slate-800 rounded-lg transition-colors flex-shrink-0 ml-2"
             >
-              <X size={24} className="text-slate-300" />
+              <X size={20} className="text-slate-300" />
             </button>
           </div>
 
-          {/* Content */}
-          <div className="p-4 sm:p-6 space-y-6">
-            {/* Card Preview - Responsive & Centered */}
+          {/* Content - Scrollable */}
+          <div className="overflow-y-auto flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6">
+            {/* Card Preview - Responsive & Centered - Large on mobile */}
             <div className="flex justify-center items-center w-full">
               <div
                 className="rounded-xl overflow-hidden shadow-2xl"
                 style={{
-                  width: 'min(280px, 80vw)',
+                  width: 'min(320px, 90vw)',
                   aspectRatio: '63 / 88'
                 }}
               >

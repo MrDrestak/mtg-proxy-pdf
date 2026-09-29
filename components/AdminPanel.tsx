@@ -22,6 +22,7 @@ interface AdminPanelProps {
   watermarkScale: number;
   showWatermark: boolean;
   onWatermarkChange: (field: 'opacity' | 'scale' | 'show', value: number | boolean) => void;
+  onClearWishlist: () => void;
   onClose: () => void;
 }
 
@@ -34,6 +35,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
   watermarkScale,
   showWatermark,
   onWatermarkChange,
+  onClearWishlist,
   onClose,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -239,6 +241,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                 />
                 <p className="text-slate-400 text-xs mt-2">Rango: 60% - 150%</p>
               </div>
+            </div>
+
+            {/* Clear Wishlist Button */}
+            <div className="mt-6 pt-6 border-t border-slate-700">
+              <button
+                onClick={onClearWishlist}
+                className="w-full px-4 py-2 bg-red-900/30 hover:bg-red-900/50 text-red-300 font-semibold rounded-lg transition-all text-sm border border-red-500/30"
+              >
+                Vaciar Listado
+              </button>
             </div>
           </div>
 
