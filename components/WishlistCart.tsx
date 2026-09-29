@@ -9,6 +9,7 @@ interface WishlistCartProps {
   onRemoveCard: (cardId: string) => void;
   onCopyList: () => void;
   onDownloadList: () => void;
+  onClearAll: () => void;
 }
 
 const WishlistCart: React.FC<WishlistCartProps> = ({
@@ -17,7 +18,8 @@ const WishlistCart: React.FC<WishlistCartProps> = ({
   onToggle,
   onRemoveCard,
   onCopyList,
-  onDownloadList
+  onDownloadList,
+  onClearAll
 }) => {
   return (
     <>
@@ -92,18 +94,26 @@ const WishlistCart: React.FC<WishlistCartProps> = ({
 
             {/* Footer Actions */}
             {cards.length > 0 && (
-              <div className="sticky bottom-0 flex gap-2 p-4 sm:p-6 bg-slate-950/80 border-t border-blue-500/20 backdrop-blur-xs">
+              <div className="sticky bottom-0 flex flex-col gap-2 p-4 sm:p-6 bg-slate-950/80 border-t border-blue-500/20 backdrop-blur-xs">
+                <div className="flex gap-2">
+                  <button
+                    onClick={onCopyList}
+                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all text-sm"
+                  >
+                    Copiar Listado
+                  </button>
+                  <button
+                    onClick={onDownloadList}
+                    className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-all text-sm"
+                  >
+                    Descargar TXT
+                  </button>
+                </div>
                 <button
-                  onClick={onCopyList}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all text-sm"
+                  onClick={onClearAll}
+                  className="w-full px-4 py-2 bg-red-900/30 hover:bg-red-900/50 text-red-300 font-semibold rounded-lg transition-all text-sm border border-red-500/30"
                 >
-                  Copiar Listado
-                </button>
-                <button
-                  onClick={onDownloadList}
-                  className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-all text-sm"
-                >
-                  Descargar TXT
+                  Vaciar Listado
                 </button>
               </div>
             )}

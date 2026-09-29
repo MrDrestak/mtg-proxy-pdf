@@ -36,7 +36,7 @@ const CardZoomModal: React.FC<CardZoomModalProps> = ({
 
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
-        <div className="bg-gradient-to-b from-slate-900 to-black border border-blue-500/30 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[95vh] flex flex-col">
+        <div className="bg-gradient-to-b from-slate-900 to-black border border-blue-500/30 rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-blue-500/20 bg-slate-950/80 backdrop-blur-xs flex-shrink-0">
             <div className="min-w-0">
@@ -53,14 +53,14 @@ const CardZoomModal: React.FC<CardZoomModalProps> = ({
             </button>
           </div>
 
-          {/* Content - Scrollable */}
-          <div className="overflow-y-auto flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6">
-            {/* Card Preview - Responsive & Centered - Large on mobile */}
-            <div className="flex justify-center items-center w-full">
+          {/* Content - No scroll, compressed */}
+          <div className="flex-1 overflow-hidden p-2 sm:p-3 space-y-1.5 flex flex-col items-center justify-center">
+            {/* Card Preview - Responsive & Centered - Constrained height */}
+            <div className="flex justify-center items-center w-full flex-shrink-0">
               <div
-                className="rounded-xl overflow-hidden shadow-2xl"
+                className="rounded-lg overflow-hidden shadow-xl"
                 style={{
-                  width: 'min(320px, 90vw)',
+                  width: 'min(220px, 70vw)',
                   aspectRatio: '63 / 88'
                 }}
               >
@@ -73,18 +73,18 @@ const CardZoomModal: React.FC<CardZoomModalProps> = ({
               </div>
             </div>
 
-            {/* Card Details */}
+            {/* Card Details - Compact & Non-scrolling */}
             {((card.colors && card.colors.length > 0) || (card.tags && card.tags.length > 0) || card.notes) && (
-              <div className="space-y-4 p-4 bg-slate-900/50 rounded-lg border border-slate-700/50">
-                {/* Mana Colors */}
+              <div className="space-y-1.5 p-2 bg-slate-900/50 rounded-lg border border-slate-700/50 flex-shrink-0">
+                {/* Mana Colors - Inline & Compact */}
                 {card.colors && card.colors.length > 0 && (
-                  <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Identidad de Color</p>
-                    <div className="flex flex-wrap gap-3">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wide whitespace-nowrap">Color:</p>
+                    <div className="flex gap-1">
                       {card.colors.map((color) => (
                         <div
                           key={color}
-                          className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg border-2 border-blue-500/40 shadow-lg hover:shadow-xl hover:scale-110 transition-transform"
+                          className="w-6 h-6 rounded-full flex items-center justify-center text-white font-bold text-xs border border-blue-500/40 shadow-sm"
                           title={getColorLabel(color)}
                           style={{ backgroundColor: getColorHex(color) }}
                         >
@@ -95,15 +95,15 @@ const CardZoomModal: React.FC<CardZoomModalProps> = ({
                   </div>
                 )}
 
-                {/* Tags */}
+                {/* Tags - Inline & Compact */}
                 {card.tags && card.tags.length > 0 && (
-                  <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Categorías</p>
-                    <div className="flex flex-wrap gap-2">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wide whitespace-nowrap">Tags:</p>
+                    <div className="flex flex-wrap gap-1">
                       {card.tags.map((tag) => (
                         <span
                           key={tag}
-                          className="px-3 py-1 bg-blue-600/20 border border-blue-500/50 text-blue-300 text-xs font-semibold rounded-full"
+                          className="px-1.5 py-0.5 bg-blue-600/20 border border-blue-500/50 text-blue-300 text-xs font-semibold rounded-full"
                         >
                           #{tag}
                         </span>
@@ -114,46 +114,43 @@ const CardZoomModal: React.FC<CardZoomModalProps> = ({
 
                 {/* Notes */}
                 {card.notes && (
-                  <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Notas</p>
-                    <p className="text-sm text-slate-300 italic">{card.notes}</p>
-                  </div>
+                  <p className="text-xs text-slate-400 italic line-clamp-1">{card.notes}</p>
                 )}
               </div>
             )}
+          </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  onAddToList(card);
-                  onClose();
-                }}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
-                  isInList
-                    ? 'bg-emerald-600/30 text-emerald-300 border border-emerald-500/50'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
-                }`}
-              >
-                {isInList ? (
-                  <>
-                    <Copy size={16} />
-                    En Listado
-                  </>
-                ) : (
-                  <>
-                    <Plus size={16} />
-                    Añadir a Listado
-                  </>
-                )}
-              </button>
-              <button
-                onClick={onClose}
-                className="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold transition-all"
-              >
-                Cerrar
-              </button>
-            </div>
+          {/* Action Buttons - Always Visible Footer */}
+          <div className="flex gap-2 p-2 sm:p-3 bg-slate-950/80 border-t border-blue-500/20 backdrop-blur-xs flex-shrink-0">
+            <button
+              onClick={() => {
+                onAddToList(card);
+                onClose();
+              }}
+              className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg font-semibold transition-all text-xs sm:text-sm ${
+                isInList
+                  ? 'bg-emerald-600/30 text-emerald-300 border border-emerald-500/50'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
+            >
+              {isInList ? (
+                <>
+                  <Copy size={12} />
+                  En Listado
+                </>
+              ) : (
+                <>
+                  <Plus size={12} />
+                  Añadir
+                </>
+              )}
+            </button>
+            <button
+              onClick={onClose}
+              className="flex-1 px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold transition-all text-xs sm:text-sm"
+            >
+              Cerrar
+            </button>
           </div>
         </div>
       </div>
