@@ -12,44 +12,35 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebaseConfig';
 import { CardImage } from '../types';
-import { put, del } from '@vercel/blob';
 
 const CARDS_COLLECTION = 'cards';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 /**
- * Upload an image to Firebase Storage
+ * Upload an image to Vercel Blob via backend API
  * Returns the download URL for use in the card document
  */
 export async function uploadCardImage(cardId: string, imageData: string): Promise<string> {
   try {
     console.log('[uploadCardImage] Starting upload for card:', cardId);
 
-    // Convert data URL to blob (data URLs cannot be fetched directly)
-    const parts = imageData.split(',');
-    const mimeMatch = parts[0].match(/:(.*?);/);
-    const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-    const bstr = atob(parts[1]);
-    const n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    for (let i = 0; i < n; i++) {
-      u8arr[i] = bstr.charCodeAt(i);
+    const response = await fetch(`${API_BASE}/api/upload-image`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ cardId, imageData }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Upload failed');
     }
-    const blob = new Blob([u8arr], { type: mimeType });
-    console.log('[uploadCardImage] Blob created:', { size: blob.size, type: blob.type });
 
-    // Upload to Vercel Blob
-    console.log('[uploadCardImage] Starting Vercel Blob upload...');
-    const result = await put(
-      `cards/${cardId}/image.jpg`,
-      blob,
-      {
-        access: 'public',
-        token: process.env.REACT_APP_VERCEL_BLOB_TOKEN
-      }
-    );
-    console.log('[uploadCardImage] Upload completed, URL:', result.url);
+    const { url } = await response.json();
+    console.log('[uploadCardImage] Upload completed, URL:', url);
 
-    return result.url;
+    return url;
   } catch (error) {
     console.error('Error uploading card image:', error);
     throw error;
@@ -57,12 +48,22 @@ export async function uploadCardImage(cardId: string, imageData: string): Promis
 }
 
 /**
- * Delete a card image from Vercel Blob Storage
+ * Delete a card image from Vercel Blob Storage via backend API
  */
 export async function deleteCardImage(cardId: string): Promise<void> {
   try {
-    const blobUrl = `https://blob.vercel.sh/cards/${cardId}/image.jpg`;
-    await del(blobUrl);
+    const response = await fetch(`${API_BASE}/api/delete-image`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ cardId }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('Delete error:', error);
+    }
   } catch (error) {
     console.error('Error deleting card image:', error);
     // Don't throw - storage file may not exist

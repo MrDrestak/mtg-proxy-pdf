@@ -4,12 +4,15 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently \"vite\" \"tsx watch server.ts\"",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "tsx watch server.ts"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
     "firebase": "^12.19.0",
     "jspdf": "^4.1.0",
     "lucide-react": "^0.564.0",
@@ -20,6 +23,8 @@
   "devDependencies": {
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^10.0.5",
+    "tsx": "^4.23.15",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }
