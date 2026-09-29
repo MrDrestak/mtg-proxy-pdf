@@ -13,10 +13,10 @@ import GalleryFilters from './components/GalleryFilters';
 import { generatePDF } from './services/pdfGenerator';
 import { generateSVG } from './services/svgGenerator';
 import { processCardImageWithBlackCorners, ImageProcessOptions } from './services/imageProcessor';
-import { useFirebaseCards } from './hooks/useFirebaseCards';
+import { useSupabaseCards } from './hooks/useSupabaseCards';
 
 const App: React.FC = () => {
-  const { cards, addCard, removeCard, updateCard, refreshCards } = useFirebaseCards();
+  const { cards, addCard, removeCard, updateCard, refreshCards } = useSupabaseCards();
   const [activeTab, setActiveTab] = useState<'gallery' | 'print'>('gallery');
   const [isExporting, setIsExporting] = useState(false);
   const [paperFormat, setPaperFormat] = useState<PaperFormat>('a4');
