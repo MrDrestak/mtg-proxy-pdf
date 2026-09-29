@@ -14,7 +14,16 @@ import { db } from './firebaseConfig';
 import { CardImage } from '../types';
 
 const CARDS_COLLECTION = 'cards';
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+// Use Vercel Functions API in production, local Express backend in dev
+const getApiBase = () => {
+  if (import.meta.env.PROD) {
+    return ''; // Relative path - same domain
+  }
+  return import.meta.env.VITE_API_URL || 'http://localhost:3001';
+};
+
+const API_BASE = getApiBase();
 
 /**
  * Upload an image to Vercel Blob via backend API
