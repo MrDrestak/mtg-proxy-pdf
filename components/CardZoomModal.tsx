@@ -55,13 +55,12 @@ const CardZoomModal: React.FC<CardZoomModalProps> = ({
 
           {/* Content */}
           <div className="p-4 sm:p-6 space-y-6">
-            {/* Card Preview - Responsive */}
-            <div className="flex justify-center">
+            {/* Card Preview - Responsive & Centered */}
+            <div className="flex justify-center items-center w-full">
               <div
                 className="rounded-xl overflow-hidden shadow-2xl"
                 style={{
-                  width: 'min(300px, 68vw)',
-                  height: 'auto',
+                  width: 'min(280px, 80vw)',
                   aspectRatio: '63 / 88'
                 }}
               >
@@ -75,18 +74,18 @@ const CardZoomModal: React.FC<CardZoomModalProps> = ({
             </div>
 
             {/* Card Details */}
-            {(card.colors || card.tags || card.notes) && (
+            {((card.colors && card.colors.length > 0) || (card.tags && card.tags.length > 0) || card.notes) && (
               <div className="space-y-4 p-4 bg-slate-900/50 rounded-lg border border-slate-700/50">
                 {/* Mana Colors */}
                 {card.colors && card.colors.length > 0 && (
                   <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Identidad de Color</p>
-                    <div className="flex flex-wrap gap-2">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Identidad de Color</p>
+                    <div className="flex flex-wrap gap-3">
                       {card.colors.map((color) => (
                         <div
                           key={color}
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm border-2 border-blue-500/30"
-                          title={`${color}`}
+                          className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg border-2 border-blue-500/40 shadow-lg hover:shadow-xl hover:scale-110 transition-transform"
+                          title={getColorLabel(color)}
                           style={{ backgroundColor: getColorHex(color) }}
                         >
                           {color}
@@ -170,9 +169,22 @@ function getColorHex(color: string): string {
     'R': '#D3291C',
     'G': '#00733E',
     'M': '#9D7C3E',
-    'C': '#C0C0C0'
+    'C': '#B0B0B0'
   };
   return colors[color] || '#666';
+}
+
+function getColorLabel(color: string): string {
+  const labels: Record<string, string> = {
+    'W': 'Blanco',
+    'U': 'Azul',
+    'B': 'Negro',
+    'R': 'Rojo',
+    'G': 'Verde',
+    'M': 'Multicolor',
+    'C': 'Incoloro'
+  };
+  return labels[color] || color;
 }
 
 export default CardZoomModal;

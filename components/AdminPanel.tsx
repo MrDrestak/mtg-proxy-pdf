@@ -10,7 +10,6 @@ const MANA_COLORS: { value: CardColor; label: string; color: string }[] = [
   { value: 'B', label: 'Negro', color: 'bg-slate-800' },
   { value: 'R', label: 'Rojo', color: 'bg-red-600' },
   { value: 'G', label: 'Verde', color: 'bg-green-600' },
-  { value: 'M', label: 'Multicolor', color: 'bg-gradient-to-r from-yellow-400 via-red-500 to-green-500' },
   { value: 'C', label: 'Incoloro', color: 'bg-gray-400' },
 ];
 

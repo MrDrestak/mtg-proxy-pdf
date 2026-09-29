@@ -12,6 +12,7 @@ interface CardPreviewProps {
   showWatermark?: boolean;
   watermarkOpacity?: number;
   watermarkScale?: number;
+  fillContainer?: boolean;
 }
 
 const CardPreview: React.FC<CardPreviewProps> = ({
@@ -20,7 +21,8 @@ const CardPreview: React.FC<CardPreviewProps> = ({
   foilMode = false,
   showWatermark = true,
   watermarkOpacity = 35,
-  watermarkScale = 100
+  watermarkScale = 100,
+  fillContainer = false
 }) => {
   const width = CARD.width * MM_TO_PX;
   const height = CARD.height * MM_TO_PX;
@@ -45,7 +47,7 @@ const CardPreview: React.FC<CardPreviewProps> = ({
             : 'bg-black border border-slate-700/60 shadow-xl hover:shadow-blue-500/30'
           : 'border-2 border-dashed border-slate-600 bg-slate-950 hover:border-blue-500/50'
       }`}
-      style={{ width: `${width}px`, height: `${height}px` }}
+      style={fillContainer ? { width: '100%', aspectRatio: '63 / 88' } : { width: `${width}px`, height: `${height}px` }}
       onContextMenu={handleContextMenu}
       onDragStart={handleDragStart}
     >

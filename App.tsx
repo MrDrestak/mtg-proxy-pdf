@@ -414,12 +414,13 @@ const App: React.FC = () => {
                         }}
                         className="cursor-pointer group"
                       >
-                        <div className="relative rounded-lg overflow-hidden bg-black border border-blue-500/20 hover:border-blue-400/50 transition-all hover:shadow-lg hover:shadow-blue-500/20 transform hover:scale-105">
+                        <div className="relative w-full aspect-[63/88] rounded-lg overflow-hidden bg-black border border-blue-500/20 hover:border-blue-400/50 transition-all hover:shadow-lg hover:shadow-blue-500/20 transform hover:scale-105">
                           <CardPreview
                             card={card}
                             showWatermark={showWatermark}
                             watermarkOpacity={watermarkOpacity}
                             watermarkScale={watermarkScale}
+                            fillContainer={true}
                           />
                         </div>
                         <div className="mt-2 px-2">
