@@ -5,13 +5,13 @@ import { fileToDataUrl } from '../services/imageProcessor';
 import CardPreview from './CardPreview';
 
 const MANA_COLORS: { value: CardColor; label: string; color: string }[] = [
-  { value: 'white', label: 'Blanco', color: 'bg-yellow-100' },
-  { value: 'blue', label: 'Azul', color: 'bg-blue-500' },
-  { value: 'black', label: 'Negro', color: 'bg-slate-800' },
-  { value: 'red', label: 'Rojo', color: 'bg-red-600' },
-  { value: 'green', label: 'Verde', color: 'bg-green-600' },
-  { value: 'multicolor', label: 'Multicolor', color: 'bg-gradient-to-r from-yellow-400 via-red-500 to-green-500' },
-  { value: 'colorless', label: 'Incoloro', color: 'bg-gray-400' },
+  { value: 'W', label: 'Blanco', color: 'bg-yellow-100' },
+  { value: 'U', label: 'Azul', color: 'bg-blue-500' },
+  { value: 'B', label: 'Negro', color: 'bg-slate-800' },
+  { value: 'R', label: 'Rojo', color: 'bg-red-600' },
+  { value: 'G', label: 'Verde', color: 'bg-green-600' },
+  { value: 'M', label: 'Multicolor', color: 'bg-gradient-to-r from-yellow-400 via-red-500 to-green-500' },
+  { value: 'C', label: 'Incoloro', color: 'bg-gray-400' },
 ];
 
 interface AdminPanelProps {
@@ -58,11 +58,19 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
     cards.forEach(card => {
       card.tags?.forEach(tag => tags.add(tag));
     });
-    return Array.from(tags).sort();
+    const result = Array.from(tags).sort();
+    console.log('[AdminPanel] existingTags recalculated:', result, 'from', cards.length, 'cards');
+    return result;
   }, [cards]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     console.log('[AdminPanel] handleFileSelect triggered');
+    console.log('[AdminPanel] Current form state:', {
+      name: formName,
+      nickname: formNickname,
+      colors: formColors,
+      tags: formTags
+    });
     const files = Array.from(e.target.files || []);
     console.log('[AdminPanel] Files selected:', files.length);
 
@@ -305,25 +313,32 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
 
                 {/* Tag Selection */}
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {existingTags.map((tag) => (
-                    <button
-                      key={tag}
-                      onClick={() =>
-                        setFormTags(prev =>
-                          prev.includes(tag)
-                            ? prev.filter(t => t !== tag)
-                            : [...prev, tag]
-                        )
-                      }
-                      className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                        formTags.includes(tag)
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                      }`}
-                    >
-                      {tag}
-                    </button>
-                  ))}
+                  {existingTags.length === 0 ? (
+                    <p className="text-slate-400 text-xs">No hay etiquetas existentes. Crea una nueva.</p>
+                  ) : (
+                    existingTags.map((tag) => (
+                      <button
+                        key={tag}
+                        onClick={() => {
+                          console.log('[AdminPanel] Toggling tag:', tag);
+                          setFormTags(prev => {
+                            const updated = prev.includes(tag)
+                              ? prev.filter(t => t !== tag)
+                              : [...prev, tag];
+                            console.log('[AdminPanel] formTags after toggle:', updated);
+                            return updated;
+                          });
+                        }}
+                        className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                          formTags.includes(tag)
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                        }`}
+                      >
+                        {tag}
+                      </button>
+                    ))
+                  )}
                 </div>
 
                 {/* Add New Tag */}
@@ -336,7 +351,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                     className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-sm"
                     onKeyPress={(e) => {
                       if (e.key === 'Enter' && newTagInput.trim()) {
-                        setFormTags(prev => [...new Set([...prev, newTagInput.trim()])]);
+                        console.log('[AdminPanel] Adding tag via Enter:', newTagInput.trim());
+                        setFormTags(prev => {
+                          const updated = [...new Set([...prev, newTagInput.trim()])];
+                          console.log('[AdminPanel] formTags after add:', updated);
+                          return updated;
+                        });
                         setNewTagInput('');
                       }
                     }}
@@ -344,7 +364,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                   <button
                     onClick={() => {
                       if (newTagInput.trim()) {
-                        setFormTags(prev => [...new Set([...prev, newTagInput.trim()])]);
+                        console.log('[AdminPanel] Adding tag via button:', newTagInput.trim());
+                        setFormTags(prev => {
+                          const updated = [...new Set([...prev, newTagInput.trim()])];
+                          console.log('[AdminPanel] formTags after add:', updated);
+                          return updated;
+                        });
                         setNewTagInput('');
                       }
                     }}

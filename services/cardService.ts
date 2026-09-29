@@ -87,6 +87,7 @@ export async function saveCard(card: CardImage, imageUrl?: string): Promise<stri
       createdAt: card.createdAt ? Timestamp.fromDate(new Date(card.createdAt)) : Timestamp.now(),
       updatedAt: Timestamp.now()
     };
+    console.log('[saveCard] Saving card with data:', cardData);
 
     // Include image URL if provided
     if (imageUrl) {
