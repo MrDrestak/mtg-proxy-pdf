@@ -189,8 +189,8 @@ const App: React.FC = () => {
     setIsAdminLoggedIn(false);
   };
 
-  const handleAddCard = async (card: CardImage) => {
-    await addCard(card);
+  const handleAddCard = async (card: CardImage, imageData?: string) => {
+    await addCard(card, imageData);
   };
 
   const handleUpdateCard = async (cardId: string, updates: Partial<CardImage>) => {

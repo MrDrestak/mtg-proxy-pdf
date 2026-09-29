@@ -16,7 +16,7 @@ const MANA_COLORS: { value: CardColor; label: string; color: string }[] = [
 
 interface AdminPanelProps {
   cards: CardImage[];
-  onAddCard: (card: CardImage) => Promise<void>;
+  onAddCard: (card: CardImage, imageData?: string) => Promise<void>;
   onRemoveCard: (cardId: string) => Promise<void>;
   onUpdateCard: (cardId: string, updates: Partial<CardImage>) => Promise<void>;
   watermarkOpacity: number;
@@ -102,7 +102,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
           // Firebase save is async
           setUploadStatus(`Guardando en Firebase: ${file.name.substring(0, 20)}...`);
           console.log(`[AdminPanel] Uploading to Firebase: ${file.name}`);
-          await onAddCard(newCard);
+          // Pass dataUrl as second argument for Firebase Storage upload
+          await onAddCard(newCard, dataUrl);
           console.log(`[AdminPanel] Successfully uploaded: ${file.name}`);
 
           setUploadProgress(((i + 1) / totalFiles) * 100);
