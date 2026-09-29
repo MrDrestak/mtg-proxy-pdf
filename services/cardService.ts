@@ -15,67 +15,32 @@ import { CardImage } from '../types';
 
 const CARDS_COLLECTION = 'cards';
 
-// Use Vercel Functions API in production, local Express backend in dev
-const getApiBase = () => {
-  if (import.meta.env.PROD) {
-    return ''; // Relative path - same domain
-  }
-  return import.meta.env.VITE_API_URL || 'http://localhost:3001';
-};
-
-const API_BASE = getApiBase();
-
 /**
- * Upload an image to Vercel Blob via backend API
- * Returns the download URL for use in the card document
+ * Store image as base64 in Firestore (temporary solution)
+ * Since external storage is blocked, we embed the image in the card document
  */
 export async function uploadCardImage(cardId: string, imageData: string): Promise<string> {
   try {
-    console.log('[uploadCardImage] Starting upload for card:', cardId);
-
-    const response = await fetch(`${API_BASE}/api/upload-image`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ cardId, imageData }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Upload failed');
-    }
-
-    const { url } = await response.json();
-    console.log('[uploadCardImage] Upload completed, URL:', url);
-
-    return url;
+    console.log('[uploadCardImage] Storing image as base64 in Firestore for card:', cardId);
+    // Return the data URL directly - it will be stored in Firestore
+    // Firestore has a 1MB limit, but compressed JPEGs are usually <1MB
+    return imageData;
   } catch (error) {
-    console.error('Error uploading card image:', error);
+    console.error('Error processing card image:', error);
     throw error;
   }
 }
 
 /**
- * Delete a card image from Vercel Blob Storage via backend API
+ * Delete a card image (no-op since it's stored in Firestore)
  */
 export async function deleteCardImage(cardId: string): Promise<void> {
   try {
-    const response = await fetch(`${API_BASE}/api/delete-image`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ cardId }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      console.error('Delete error:', error);
-    }
+    console.log('[deleteCardImage] Image is stored in Firestore, no external cleanup needed');
+    // No-op - image is in Firestore document
   } catch (error) {
     console.error('Error deleting card image:', error);
-    // Don't throw - storage file may not exist
+    // Don't throw - image is in Firestore
   }
 }
 
