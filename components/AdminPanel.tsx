@@ -229,11 +229,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
           </div>
 
-          {/* 2. Card Metadata Form Section */}
+          {/* 2. Información de la Carta + Cargar Imágenes (UNIFIED) */}
           <div className="bg-slate-900/50 rounded-xl border border-blue-500/20 p-6">
             <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
               <Edit2 size={20} className="text-purple-400" />
-              Información de la Carta
+              Información de la Carta + Cargar Imágenes
             </h3>
 
             <div className="space-y-4">
@@ -386,50 +386,53 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                   </div>
                 </div>
               )}
+
+              {/* File Upload Section - INTEGRATED */}
+              <div className="pt-4 border-t border-slate-700/50">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  disabled={isUploading}
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2"
+                >
+                  <Upload size={18} />
+                  {isUploading ? `Cargando... ${Math.round(uploadProgress)}%` : 'Seleccionar Imágenes'}
+                </button>
+
+                {/* Progress Bar */}
+                {isUploading && (
+                  <div className="mt-4 space-y-2">
+                    <div className="w-full bg-slate-700 rounded-full h-3 overflow-hidden border border-blue-500/30">
+                      <div
+                        className="bg-gradient-to-r from-blue-500 to-blue-400 h-full transition-all duration-300"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                    {uploadStatus && (
+                      <p className="text-xs text-blue-300 text-center">{uploadStatus}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Info Text */}
+              {!isUploading && (
+                <p className="text-xs text-slate-400 text-center">
+                  Los campos se reinician después de cada carga
+                </p>
+              )}
             </div>
           </div>
 
-          {/* 3. Upload Section */}
-          <div className="bg-slate-900/50 rounded-xl border border-blue-500/20 p-6">
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <Upload size={20} className="text-blue-400" />
-              Cargar Imágenes
-            </h3>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handleFileSelect}
-              className="hidden"
-              disabled={isUploading}
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2"
-            >
-              <Upload size={18} />
-              {isUploading ? `Cargando... ${Math.round(uploadProgress)}%` : 'Seleccionar Imágenes'}
-            </button>
-
-            {/* Progress Bar */}
-            {isUploading && (
-              <div className="mt-4 space-y-2">
-                <div className="w-full bg-slate-700 rounded-full h-3 overflow-hidden border border-blue-500/30">
-                  <div
-                    className="bg-gradient-to-r from-blue-500 to-blue-400 h-full transition-all duration-300"
-                    style={{ width: `${uploadProgress}%` }}
-                  />
-                </div>
-                {uploadStatus && (
-                  <p className="text-xs text-blue-300 text-center">{uploadStatus}</p>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* 4. Cards Management Section */}
+          {/* 3. Cards Management Section */}
           <div className="bg-slate-900/50 rounded-xl border border-blue-500/20 p-6">
             <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
               <Eye size={20} className="text-green-400" />
