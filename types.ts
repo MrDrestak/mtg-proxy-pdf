@@ -12,6 +12,7 @@ export interface CardImage {
   colors?: CardColor[];
   tags?: string[];
   notes?: string;
+  isFoil?: boolean;
 }
 
 export interface PageLayout {

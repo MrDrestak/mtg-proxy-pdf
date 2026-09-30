@@ -11,6 +11,8 @@ interface GalleryFiltersProps {
   selectedTags: string[];
   onTagToggle: (tag: string) => void;
   onClearFilters: () => void;
+  onlyFoil: boolean;
+  onFoilToggle: () => void;
 }
 
 const GalleryFilters: React.FC<GalleryFiltersProps> = ({
@@ -21,7 +23,9 @@ const GalleryFilters: React.FC<GalleryFiltersProps> = ({
   onColorToggle,
   selectedTags,
   onTagToggle,
-  onClearFilters
+  onClearFilters,
+  onlyFoil,
+  onFoilToggle
 }) => {
   // Get all available tags
   const allTags = useMemo(() => {
@@ -43,7 +47,9 @@ const GalleryFilters: React.FC<GalleryFiltersProps> = ({
     return counts;
   }, [cards]);
 
-  const hasActiveFilters = searchQuery || selectedColors.length > 0 || selectedTags.length > 0;
+  const foilCount = useMemo(() => cards.filter(c => c.isFoil).length, [cards]);
+
+  const hasActiveFilters = searchQuery || selectedColors.length > 0 || selectedTags.length > 0 || onlyFoil;
 
   return (
     <div className="space-y-4 p-4 sm:p-6 bg-slate-900/50 rounded-xl border border-blue-500/20">
@@ -90,6 +96,25 @@ const GalleryFilters: React.FC<GalleryFiltersProps> = ({
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Foil */}
+      <div>
+        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">
+          Acabado
+        </label>
+        <button
+          onClick={onFoilToggle}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-semibold text-sm transition-all border-2 ${
+            onlyFoil
+              ? 'border-fuchsia-400 bg-fuchsia-500/30 text-fuchsia-200 shadow-lg shadow-fuchsia-500/20'
+              : 'border-slate-700 bg-slate-800/50 text-slate-300 hover:border-fuchsia-400/50'
+          }`}
+        >
+          <span>✦</span>
+          <span>Solo Foil</span>
+          <span className="text-xs opacity-70">({foilCount})</span>
+        </button>
       </div>
 
       {/* Tags */}

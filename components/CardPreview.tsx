@@ -50,7 +50,12 @@ const CardPreview: React.FC<CardPreviewProps> = ({
           : 'border-2 border-dashed border-slate-600 bg-slate-950 hover:border-blue-500/50'
       }`}
       style={{
-        ...(card?.isFoil && { background: 'linear-gradient(135deg, #0066CC 0%, #6600FF 25%, #00CC99 50%, #FF00FF 75%, #0099FF 100%)' }),
+        ...(card?.isFoil && {
+          background: [
+            'linear-gradient(115deg, transparent 20%, rgba(255,255,255,0.45) 32%, transparent 44%, rgba(255,255,255,0.3) 62%, transparent 74%)',
+            'linear-gradient(135deg, #ff5ecb 0%, #7a5cff 18%, #2ec5ff 36%, #35f2b0 54%, #ffe45c 72%, #ff7a5c 88%, #ff5ecb 100%)'
+          ].join(', ')
+        }),
         ...(fillContainer ? { width: '100%', aspectRatio: '63 / 88' } : { width: `${width}px`, height: `${height}px` })
       }}
       onContextMenu={handleContextMenu}

@@ -56,6 +56,7 @@ const App: React.FC = () => {
   const [selectedColors, setSelectedColors] = useState<CardColor[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [onlyFoil, setOnlyFoil] = useState(false);
 
   const scaleX = useMemo(() => {
     if (!useCompensation) return 1.0;
@@ -291,9 +292,12 @@ const App: React.FC = () => {
         }
       }
 
+      // Foil filter
+      if (onlyFoil && !card.isFoil) return false;
+
       return true;
     });
-  }, [cards, searchQuery, selectedColors, selectedTags]);
+  }, [cards, searchQuery, selectedColors, selectedTags, onlyFoil]);
 
   const handleColorToggle = (color: CardColor) => {
     setSelectedColors(prev =>
@@ -311,6 +315,7 @@ const App: React.FC = () => {
     setSearchQuery('');
     setSelectedColors([]);
     setSelectedTags([]);
+    setOnlyFoil(false);
   };
 
   return (
@@ -420,6 +425,8 @@ const App: React.FC = () => {
                     selectedTags={selectedTags}
                     onTagToggle={handleTagToggle}
                     onClearFilters={handleClearFilters}
+                    onlyFoil={onlyFoil}
+                    onFoilToggle={() => setOnlyFoil(prev => !prev)}
                   />
                 )}
 

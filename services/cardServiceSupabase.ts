@@ -87,6 +87,7 @@ export async function saveCard(card: CardImage, imageUrl?: string): Promise<stri
       colors: card.colors || [],
       tags: card.tags || [],
       notes: card.notes || null,
+      is_foil: card.isFoil === true,
       created_at: card.createdAt ? new Date(card.createdAt).toISOString() : new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -146,6 +147,7 @@ export async function loadAllCards(): Promise<CardImage[]> {
       colors: row.colors || [],
       tags: row.tags || [],
       notes: row.notes || undefined,
+      isFoil: row.is_foil === true,
       createdAt: row.created_at ? new Date(row.created_at) : new Date(),
     }));
   } catch (error) {
@@ -178,6 +180,7 @@ export async function loadCardsByColor(colors: string[]): Promise<CardImage[]> {
       colors: row.colors || [],
       tags: row.tags || [],
       notes: row.notes || undefined,
+      isFoil: row.is_foil === true,
       createdAt: row.created_at ? new Date(row.created_at) : new Date(),
     }));
   } catch (error) {
@@ -210,6 +213,7 @@ export async function loadCardsByTags(tags: string[]): Promise<CardImage[]> {
       colors: row.colors || [],
       tags: row.tags || [],
       notes: row.notes || undefined,
+      isFoil: row.is_foil === true,
       createdAt: row.created_at ? new Date(row.created_at) : new Date(),
     }));
   } catch (error) {
@@ -273,6 +277,8 @@ export async function updateCardMetadata(
     if (updates.colors) updateData.colors = updates.colors;
     if (updates.tags) updateData.tags = updates.tags;
     if (updates.notes !== undefined) updateData.notes = updates.notes || null;
+    // isFoil viaja como undefined cuando se desmarca, así que siempre se persiste como boolean
+    if ('isFoil' in updates) updateData.is_foil = updates.isFoil === true;
 
     const { error } = await supabase
       .from(CARDS_TABLE)
