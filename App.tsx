@@ -268,14 +268,14 @@ const App: React.FC = () => {
 
   const handleCopyWishlist = () => {
     const text = wishlistCards
-      .map(c => c.nickname ? `${c.name} | ${c.nickname}` : c.name)
+      .map(c => c.nickname ? `${c.name} [${c.nickname}]` : c.name)
       .join('\n');
     navigator.clipboard.writeText(text);
   };
 
   const handleDownloadWishlist = () => {
     const text = wishlistCards
-      .map(c => c.nickname ? `${c.name} | ${c.nickname}` : c.name)
+      .map(c => c.nickname ? `${c.name} [${c.nickname}]` : c.name)
       .join('\n');
     const element = document.createElement('a');
     element.setAttribute('href', `data:text/plain;charset=utf-8,${encodeURIComponent(text)}`);

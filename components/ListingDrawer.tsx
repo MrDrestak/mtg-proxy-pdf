@@ -11,12 +11,12 @@ interface ListingDrawerProps {
 const ListingDrawer: React.FC<ListingDrawerProps> = ({ isOpen, onClose, cards }) => {
   const [copied, setCopied] = useState(false);
 
-  // Format listing: "Nombre | Nickname"
+  // Format listing: "Nombre [Nickname]"
   const listingText = useMemo(() => {
     return cards
       .map(card => {
         const name = card.name || 'Unknown';
-        const nickname = card.nickname ? ` | ${card.nickname}` : '';
+        const nickname = card.nickname ? ` [${card.nickname}]` : '';
         return `${name}${nickname}`;
       })
       .join('\n');
