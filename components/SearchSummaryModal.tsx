@@ -22,7 +22,7 @@ const SearchSummaryModal: React.FC<SearchSummaryModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-96 overflow-auto">
-        <h2 className="text-2xl font-bold mb-6">Resumen de Búsqueda</h2>
+        <h2 className="text-2xl font-bold mb-6 text-gray-900">Resumen de Búsqueda</h2>
 
         {/* Summary Stats */}
         <div className="grid grid-cols-3 gap-4 mb-6">
@@ -63,21 +63,21 @@ const SearchSummaryModal: React.FC<SearchSummaryModalProps> = ({
                 <h3 className="font-semibold text-amber-900 mb-2">
                   ⚠️ {conflictCount} carta(s) con múltiples ubicaciones
                 </h3>
-                <div className="space-y-1 text-sm text-amber-800">
+                <div className="space-y-2 text-sm text-amber-800 max-h-32 overflow-y-auto">
                   {Object.entries(searchResult.conflicts).map(([cardName, paths]) => (
                     <div key={cardName}>
                       <strong>{cardName}</strong>
-                      <ul className="ml-4 mt-1">
+                      <ul className="ml-4 mt-1 space-y-0.5">
                         {paths.map((path, idx) => (
-                          <li key={idx} className="text-amber-700">
-                            • {path}
+                          <li key={idx} className="text-amber-700 text-xs font-mono">
+                            {idx + 1}. {path}
                           </li>
                         ))}
                       </ul>
                     </div>
                   ))}
                 </div>
-                <p className="mt-2 text-xs text-amber-700 italic">
+                <p className="mt-3 text-xs text-amber-700 italic border-t border-amber-300 pt-2">
                   Resuelve la duplicidad en la carpeta de origen. Estas cartas NO se procesarán.
                 </p>
               </div>
@@ -90,7 +90,7 @@ const SearchSummaryModal: React.FC<SearchSummaryModalProps> = ({
           <div className="mb-6">
             <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
               <XCircle size={18} className="text-red-600" />
-              Cartas no encontradas
+              Cartas no encontradas ({searchResult.notFound.length})
             </h3>
             <div className="bg-gray-50 p-3 rounded-lg max-h-24 overflow-y-auto">
               <ul className="space-y-1 text-sm text-gray-700">
@@ -112,10 +112,11 @@ const SearchSummaryModal: React.FC<SearchSummaryModalProps> = ({
           </button>
           <button
             onClick={onAccept}
-            className="px-6 py-2 text-white bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition-colors flex items-center gap-2"
+            disabled={searchResult.found.length === 0}
+            className="px-6 py-2 text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-semibold transition-colors flex items-center gap-2"
           >
             <CheckCircle size={18} />
-            Aceptar ({searchResult.found.length} cartas)
+            Aceptar ({searchResult.found.length})
           </button>
         </div>
       </div>

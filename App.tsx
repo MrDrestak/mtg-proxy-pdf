@@ -1092,6 +1092,11 @@ const App: React.FC = () => {
           setShowSheetPreview(false);
           setShowCardManager(true);
         }}
+        onExportPDF={() => {
+          if (printCards.length > 0) {
+            handleExportPDF();
+          }
+        }}
         onClose={() => setShowSheetPreview(false)}
         isVisible={showSheetPreview}
       />

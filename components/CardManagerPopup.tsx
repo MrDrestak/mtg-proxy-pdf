@@ -26,6 +26,7 @@ const CardManagerPopup: React.FC<CardManagerPopupProps> = ({
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [gridPage, setGridPage] = useState(0);
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
+  const [dragOverItem, setDragOverItem] = useState<number | null>(null);
 
   if (!isVisible) return null;
 
@@ -41,13 +42,19 @@ const CardManagerPopup: React.FC<CardManagerPopupProps> = ({
     setDraggedItem(index);
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
+    setDragOverItem(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverItem(null);
   };
 
   const handleDrop = (targetIndex: number) => {
     if (draggedItem === null || draggedItem === targetIndex) {
       setDraggedItem(null);
+      setDragOverItem(null);
       return;
     }
 
@@ -58,6 +65,7 @@ const CardManagerPopup: React.FC<CardManagerPopupProps> = ({
 
     onUpdateOrder(newOrder);
     setDraggedItem(null);
+    setDragOverItem(null);
   };
 
   const handleDuplicate = (cardId: string) => {
@@ -73,7 +81,10 @@ const CardManagerPopup: React.FC<CardManagerPopupProps> = ({
       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="border-b p-6 flex justify-between items-center">
-          <h2 className="text-2xl font-bold">Gestor de Cartas</h2>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Gestor de Cartas</h2>
+            <p className="text-sm text-gray-500 mt-1">{orderedCards.length} cartas en el flujo</p>
+          </div>
           <div className="flex gap-2">
             <button
               onClick={() => {
@@ -85,6 +96,7 @@ const CardManagerPopup: React.FC<CardManagerPopupProps> = ({
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
+              title="Vista Lista"
             >
               <List size={20} />
             </button>
@@ -95,6 +107,7 @@ const CardManagerPopup: React.FC<CardManagerPopupProps> = ({
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
+              title="Vista Grid"
             >
               <Grid3x3 size={20} />
             </button>
@@ -114,18 +127,21 @@ const CardManagerPopup: React.FC<CardManagerPopupProps> = ({
               <p>No hay cartas para gestionar</p>
             </div>
           ) : viewMode === 'list' ? (
-            // LIST VIEW
+            // LIST VIEW with drag-drop
             <div className="space-y-2">
               {orderedCards.map((card, index) => (
                 <div
                   key={card.id}
                   draggable
                   onDragStart={() => handleDragStart(index)}
-                  onDragOver={handleDragOver}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragLeave={handleDragLeave}
                   onDrop={() => handleDrop(index)}
-                  className={`flex items-center gap-4 p-4 bg-gray-50 rounded-lg border transition-all cursor-move ${
+                  className={`flex items-center gap-4 p-4 bg-gray-50 rounded-lg border-2 transition-all cursor-move ${
                     draggedItem === index
-                      ? 'opacity-50 border-blue-400 bg-blue-50'
+                      ? 'opacity-50 border-blue-500 bg-blue-50'
+                      : dragOverItem === index
+                      ? 'border-blue-400 bg-blue-50'
                       : 'border-gray-200 hover:border-blue-300'
                   }`}
                 >
@@ -137,9 +153,14 @@ const CardManagerPopup: React.FC<CardManagerPopupProps> = ({
                     className="w-12 h-16 object-cover rounded border border-gray-300"
                   />
 
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-900">{card.name}</p>
-                    <p className="text-sm text-gray-500">Posición: {index + 1} / {orderedCards.length}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900 truncate">{card.name}</p>
+                    <p className="text-sm text-gray-500">
+                      Pos: {index + 1} / {orderedCards.length}
+                    </p>
+                    {card.sourcePath && (
+                      <p className="text-xs text-gray-400 truncate">{card.sourcePath}</p>
+                    )}
                   </div>
 
                   <div className="flex gap-2 flex-shrink-0">
@@ -162,41 +183,49 @@ const CardManagerPopup: React.FC<CardManagerPopupProps> = ({
               ))}
             </div>
           ) : (
-            // GRID VIEW
+            // GRID VIEW with pagination
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-3 gap-4">
                 {currentPageCards.map((card, idx) => (
                   <div
-                    key={card.id}
+                    key={card?.id || `empty-${idx}`}
                     className="flex flex-col items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors group"
                   >
-                    <img
-                      src={card.dataUrl}
-                      alt={card.name}
-                      className="w-24 h-32 object-cover rounded border border-gray-300"
-                    />
-                    <div className="text-xs font-semibold text-gray-700 text-center truncate w-full">
-                      {card.name}
-                    </div>
-                    <div className="text-xs text-gray-500 text-center">
-                      Pos: {gridPage * cardsPerPage + idx + 1}
-                    </div>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => handleDuplicate(card.id)}
-                        title="Duplicar"
-                        className="p-1 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded"
-                      >
-                        <Copy size={14} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(card.id)}
-                        title="Eliminar"
-                        className="p-1 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
+                    {card ? (
+                      <>
+                        <img
+                          src={card.dataUrl}
+                          alt={card.name}
+                          className="w-24 h-32 object-cover rounded border border-gray-300"
+                        />
+                        <div className="text-xs font-semibold text-gray-700 text-center truncate w-full">
+                          {card.name}
+                        </div>
+                        <div className="text-xs text-gray-500 text-center">
+                          Pos: {gridPage * cardsPerPage + idx + 1}
+                        </div>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => handleDuplicate(card.id)}
+                            title="Duplicar"
+                            className="p-1 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded"
+                          >
+                            <Copy size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(card.id)}
+                            title="Eliminar"
+                            className="p-1 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="w-24 h-32 flex items-center justify-center text-gray-400">
+                        <span className="text-xs">Vacío</span>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

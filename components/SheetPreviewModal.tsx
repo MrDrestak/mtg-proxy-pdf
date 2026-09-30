@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Edit2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit2, FileText } from 'lucide-react';
 import { CardImage } from '../types';
 
 interface SheetPreviewModalProps {
   cards: CardImage[];
   cardsOrder: number[];
   onEditOrder: () => void;
+  onExportPDF?: () => void;
   onClose: () => void;
   isVisible: boolean;
 }
@@ -14,6 +15,7 @@ const SheetPreviewModal: React.FC<SheetPreviewModalProps> = ({
   cards,
   cardsOrder,
   onEditOrder,
+  onExportPDF,
   onClose,
   isVisible
 }) => {
@@ -44,10 +46,15 @@ const SheetPreviewModal: React.FC<SheetPreviewModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl overflow-hidden">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="border-b p-6 flex justify-between items-center bg-gradient-to-r from-blue-50 to-indigo-50">
-          <h2 className="text-2xl font-bold text-gray-900">Vista Previa de Hojas</h2>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Vista Previa de Hojas</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              {orderedCards.length} cartas en {totalSheets} {totalSheets === 1 ? 'hoja' : 'hojas'}
+            </p>
+          </div>
           <button
             onClick={onClose}
             className="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold transition-colors"
@@ -57,41 +64,43 @@ const SheetPreviewModal: React.FC<SheetPreviewModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-8">
+        <div className="flex-1 overflow-y-auto p-8">
           {/* Sheet Grid 3x3 */}
           <div className="mb-8">
-            <div className="grid grid-cols-3 gap-4 bg-white p-4 rounded-lg border-2 border-gray-300">
-              {currentSheetCards.map((card, idx) => (
-                <div
-                  key={idx}
-                  className="aspect-[3/4] bg-gray-100 rounded-lg border-2 border-gray-300 overflow-hidden group relative"
-                >
-                  {card ? (
-                    <>
-                      <img
-                        src={card.dataUrl}
-                        alt={card.name}
-                        className="w-full h-full object-cover"
-                      />
-                      {/* Name tooltip on hover */}
-                      <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <p className="text-white text-xs font-semibold text-center px-2">
-                          {card.name}
-                        </p>
+            <div className="inline-block border-4 border-gray-800 p-4 bg-white">
+              <div className="grid grid-cols-3 gap-3 bg-gray-100 p-3">
+                {currentSheetCards.map((card, idx) => (
+                  <div
+                    key={idx}
+                    className="aspect-[3/4] bg-white rounded border border-gray-300 overflow-hidden group relative shadow"
+                  >
+                    {card ? (
+                      <>
+                        <img
+                          src={card.dataUrl}
+                          alt={card.name}
+                          className="w-full h-full object-cover"
+                        />
+                        {/* Name tooltip on hover */}
+                        <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-start p-2">
+                          <p className="text-white text-xs font-semibold">
+                            {card.name}
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-50">
+                        <span className="text-xs">Vacío</span>
                       </div>
-                    </>
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <span className="text-xs">Vacío</span>
-                    </div>
-                  )}
-                </div>
-              ))}
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Navigation and Controls */}
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-6">
             {/* Sheet Navigation */}
             <div className="flex items-center justify-center gap-6">
               <button
@@ -102,7 +111,7 @@ const SheetPreviewModal: React.FC<SheetPreviewModalProps> = ({
                 <ChevronLeft size={24} />
               </button>
 
-              <div className="text-center min-w-32">
+              <div className="text-center min-w-48">
                 <p className="text-lg font-semibold text-gray-900">
                   Hoja {currentPage + 1} de {totalSheets}
                 </p>
@@ -120,8 +129,8 @@ const SheetPreviewModal: React.FC<SheetPreviewModalProps> = ({
               </button>
             </div>
 
-            {/* Edit Button */}
-            <div className="flex justify-center">
+            {/* Action Buttons */}
+            <div className="flex gap-3 justify-center">
               <button
                 onClick={onEditOrder}
                 className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors"
@@ -129,6 +138,15 @@ const SheetPreviewModal: React.FC<SheetPreviewModalProps> = ({
                 <Edit2 size={18} />
                 Editar Orden
               </button>
+              {onExportPDF && (
+                <button
+                  onClick={onExportPDF}
+                  className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+                >
+                  <FileText size={18} />
+                  Exportar PDF
+                </button>
+              )}
             </div>
           </div>
         </div>
