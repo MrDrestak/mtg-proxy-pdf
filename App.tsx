@@ -266,25 +266,71 @@ const App: React.FC = () => {
     }
   };
 
-  // Sort cards by color identity (WUBRG order, then multicolor, then colorless)
+  // Sort cards by color identity following MTG rules:
+  // 1. Monocolor (W, U, B, R, G) in WUBRG order
+  // 2. Two-color (Allied & Enemy) normalized to WUBRG, sorted lexicographically
+  // 3. Three-color (Shards) normalized to WUBRG, sorted by sequence
+  // 4. Four-color (sorted by WUBRG sequence)
+  // 5. Five-color (all together)
+  // 6. Colorless (last)
   const sortCardsByColor = (cardsToSort: CardImage[]): CardImage[] => {
-    const colorOrder: Record<CardColor, number> = {
-      'W': 1, 'U': 2, 'B': 3, 'R': 4, 'G': 5, 'M': 6, 'C': 7
+    const colorSequence = ['W', 'U', 'B', 'R', 'G'];
+
+    const getColorSortKey = (colors: CardColor[] | undefined): [number, string] => {
+      if (!colors || colors.length === 0) {
+        // Colorless: sort last
+        return [6, ''];
+      }
+
+      const colorCount = colors.length;
+
+      if (colorCount === 1) {
+        // Monocolor: sort by WUBRG order
+        const colorIndex = colorSequence.indexOf(colors[0]);
+        return [0, String(colorIndex).padStart(2, '0')];
+      }
+
+      // For multicolor (2-5 colors), normalize to WUBRG order
+      const normalizedColors = [...colors].sort((c1, c2) => {
+        return colorSequence.indexOf(c1) - colorSequence.indexOf(c2);
+      });
+
+      const colorKey = normalizedColors.join('');
+
+      if (colorCount === 2) {
+        // Two-color: lexicographically sorted (already normalized above)
+        return [1, colorKey];
+      }
+
+      if (colorCount === 3) {
+        // Three-color (Shards): sorted by sequence
+        return [2, colorKey];
+      }
+
+      if (colorCount === 4) {
+        // Four-color: sorted by sequence
+        return [3, colorKey];
+      }
+
+      // Five-color
+      return [4, colorKey];
     };
 
     return [...cardsToSort].sort((a, b) => {
-      // Get the "primary" color (first in the color identity)
-      const aColors = a.colors || [];
-      const bColors = b.colors || [];
+      const [aCategorySort, aColorKey] = getColorSortKey(a.colors);
+      const [bCategorySort, bColorKey] = getColorSortKey(b.colors);
 
-      const aPrimary = aColors.length > 0 ? colorOrder[aColors[0]] : 7;
-      const bPrimary = bColors.length > 0 ? colorOrder[bColors[0]] : 7;
-
-      if (aPrimary !== bPrimary) {
-        return aPrimary - bPrimary;
+      // First sort by category (mono, 2-color, 3-color, etc.)
+      if (aCategorySort !== bCategorySort) {
+        return aCategorySort - bCategorySort;
       }
 
-      // If same primary color, sort by name alphabetically
+      // Then by color combination
+      if (aColorKey !== bColorKey) {
+        return aColorKey.localeCompare(bColorKey);
+      }
+
+      // Finally by name alphabetically
       return a.name.localeCompare(b.name);
     });
   };
