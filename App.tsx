@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Upload, Trash2, Layout, Info, FileText, List, Lock, ChevronDown } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import { CardImage, PageLayout, CardColor } from './types';
+import { CardImage, PageLayout, CardColor, SearchResult } from './types';
 import { GRID, MM_TO_PX, PaperFormat, PAPER_SIZES } from './constants';
 import CardPreview from './components/CardPreview';
 import GalleryCard from './components/GalleryCard';
@@ -11,6 +11,10 @@ import AdminPanel from './components/AdminPanel';
 import CardZoomModal from './components/CardZoomModal';
 import WishlistCart from './components/WishlistCart';
 import GalleryFilters from './components/GalleryFilters';
+import PrintCardSelector from './components/PrintCardSelector';
+import SearchSummaryModal from './components/SearchSummaryModal';
+import CardManagerPopup from './components/CardManagerPopup';
+import SheetPreviewModal from './components/SheetPreviewModal';
 import { generatePDF } from './services/pdfGenerator';
 import { generateSVG } from './services/svgGenerator';
 import { processCardImageWithBlackCorners, ImageProcessOptions } from './services/imageProcessor';
@@ -60,6 +64,11 @@ const App: React.FC = () => {
 
   // Print Tab States - Separate from Gallery
   const [printCards, setPrintCards] = useState<CardImage[]>([]);
+  const [printCardsOrder, setPrintCardsOrder] = useState<number[]>([]);
+  const [searchSummary, setSearchSummary] = useState<any>(null);
+  const [showSearchSummary, setShowSearchSummary] = useState(false);
+  const [showCardManager, setShowCardManager] = useState(false);
+  const [showSheetPreview, setShowSheetPreview] = useState(false);
 
   const scaleX = useMemo(() => {
     if (!useCompensation) return 1.0;
@@ -394,6 +403,64 @@ const App: React.FC = () => {
     setSelectedColors([]);
     setSelectedTags([]);
     setOnlyFoil(false);
+  };
+
+  // Print Workflow Handlers
+  const handleSelectManualCards = () => {
+    // Will be implemented in Fase 2 - Opens file picker dialog
+    console.log('Manual file picker');
+  };
+
+  const handleSelectFolder = () => {
+    // Will be implemented in Fase 3 - Opens folder selector
+    console.log('Folder search mode');
+  };
+
+  const handleAcceptSearchResults = () => {
+    if (searchSummary && searchSummary.found && searchSummary.found.length > 0) {
+      // Add found cards to printCards and initialize order
+      const newCards = [...printCards, ...searchSummary.found];
+      setPrintCards(newCards);
+      setPrintCardsOrder(Array.from({ length: newCards.length }, (_, i) => i));
+      setShowSearchSummary(false);
+      setSearchSummary(null);
+    }
+  };
+
+  const handleCancelSearchResults = () => {
+    setShowSearchSummary(false);
+    setSearchSummary(null);
+  };
+
+  const handleUpdateCardOrder = (newOrder: number[]) => {
+    setPrintCardsOrder(newOrder);
+  };
+
+  const handleDuplicateCard = (cardId: string) => {
+    const cardIndex = printCards.findIndex(c => c.id === cardId);
+    if (cardIndex !== -1 && printCards.length < 45) {
+      const cardToDuplicate = printCards[cardIndex];
+      const newCard: CardImage = {
+        ...cardToDuplicate,
+        id: uuidv4() // Generate new ID for duplicate
+      };
+      const newCards = [...printCards, newCard];
+      const newOrder = [...printCardsOrder, printCards.length];
+      setPrintCards(newCards);
+      setPrintCardsOrder(newOrder);
+    }
+  };
+
+  const handleDeleteCard = (cardId: string) => {
+    const indexToRemove = printCards.findIndex(c => c.id === cardId);
+    if (indexToRemove !== -1) {
+      const newCards = printCards.filter(c => c.id !== cardId);
+      const newOrder = printCardsOrder
+        .filter(idx => idx !== indexToRemove)
+        .map(idx => idx > indexToRemove ? idx - 1 : idx);
+      setPrintCards(newCards);
+      setPrintCardsOrder(newOrder.length > 0 ? newOrder : []);
+    }
   };
 
   return (
@@ -763,7 +830,17 @@ const App: React.FC = () => {
               )}
             </div>
 
-            {/* Print Card Selector - 3x3 Grid */}
+            {/* Print Card Selector - New Workflow */}
+            <div className="bg-gradient-to-br from-slate-900/50 to-blue-900/20 rounded-xl border border-blue-500/20 p-4 sm:p-6">
+              <h3 className="text-lg font-bold text-white mb-4">Nuevo Flujo de Selección</h3>
+              <PrintCardSelector
+                onSelectManual={handleSelectManualCards}
+                onSelectFolder={handleSelectFolder}
+                isLoading={false}
+              />
+            </div>
+
+            {/* Legacy Print Card Selector - 3x3 Grid */}
             {cards.length > 0 && (
               <div className="bg-white/5 border border-blue-500/20 rounded-xl overflow-hidden">
                 <div className="px-4 sm:px-6 py-3 sm:py-4 bg-slate-900/50 border-b border-blue-500/20">
@@ -876,6 +953,35 @@ const App: React.FC = () => {
         onRemoveCard={handleRemoveFromWishlist}
         onCopyList={handleCopyWishlist}
         onDownloadList={handleDownloadWishlist}
+      />
+
+      {/* Print Workflow Modals */}
+      <SearchSummaryModal
+        searchResult={searchSummary || { processed: 0, found: [], notFound: [], conflicts: {} }}
+        onAccept={handleAcceptSearchResults}
+        onCancel={handleCancelSearchResults}
+        isVisible={showSearchSummary}
+      />
+
+      <CardManagerPopup
+        cards={printCards}
+        cardsOrder={printCardsOrder}
+        onUpdateOrder={handleUpdateCardOrder}
+        onDuplicate={handleDuplicateCard}
+        onDelete={handleDeleteCard}
+        onClose={() => setShowCardManager(false)}
+        isVisible={showCardManager}
+      />
+
+      <SheetPreviewModal
+        cards={printCards}
+        cardsOrder={printCardsOrder}
+        onEditOrder={() => {
+          setShowSheetPreview(false);
+          setShowCardManager(true);
+        }}
+        onClose={() => setShowSheetPreview(false)}
+        isVisible={showSheetPreview}
       />
 
       {/* Footer */}

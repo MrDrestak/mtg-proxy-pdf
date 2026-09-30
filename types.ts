@@ -13,6 +13,16 @@ export interface CardImage {
   tags?: string[];
   notes?: string;
   isFoil?: boolean;
+  sourcePath?: string;  // Para Modo 2 (búsqueda en carpeta)
+}
+
+export interface SearchResult {
+  processed: number;                    // Total nombres en textarea
+  found: CardImage[];                   // ✓ Encontradas
+  notFound: string[];                   // ✗ No encontradas
+  conflicts: {
+    [cardName: string]: string[]        // ⚠️ 2+ rutas (SKIP, solo aviso)
+  };
 }
 
 export interface PageLayout {
