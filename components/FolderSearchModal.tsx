@@ -22,11 +22,26 @@ const FolderSearchModal: React.FC<FolderSearchModalProps> = ({
   if (!isVisible) return null;
 
   const handleSelectFolder = async () => {
-    // Simular folder selection con mock path
-    // En producción, esto usaría device filesystem picker
-    const mockPath = '/Users/walter/MTG/Cards'; // Mock for testing
-    setSelectedFolder(mockPath);
-    setError('');
+    try {
+      // Use the File System Access API to pick a folder
+      const dirHandle = await (window as any).showDirectoryPicker?.();
+
+      if (dirHandle) {
+        // Get the folder name for display
+        const folderName = dirHandle.name;
+        setSelectedFolder(folderName);
+        setError('');
+        // Store the handle for later use in the search
+        (window as any).__selectedDirHandle = dirHandle;
+      }
+    } catch (err) {
+      if ((err as any).name === 'AbortError') {
+        // User cancelled the picker
+        setError('');
+      } else {
+        setError('No se pudo acceder al selector de carpetas. Asegúrate de que estés usando un navegador compatible.');
+      }
+    }
   };
 
   const handleNextStep = () => {

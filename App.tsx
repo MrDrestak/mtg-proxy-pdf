@@ -451,18 +451,45 @@ const App: React.FC = () => {
   const handleFolderSearch = async (cardNames: string[], folderPath: string) => {
     setIsFolderSearching(true);
     try {
-      // MCP device filesystem callbacks
-      // These would be implemented via device bridge tools
+      const dirHandle = (window as any).__selectedDirHandle;
+
+      if (!dirHandle) {
+        throw new Error('No se seleccionó carpeta válida');
+      }
+
+      // Implement File System Access API callbacks
       const readDirFn = async (path: string): Promise<string[]> => {
-        // Placeholder - actual implementation would use mcp__remote-devices__ tools
-        console.warn('readDirFn not yet implemented - requires device filesystem integration');
-        return [];
+        const entries: string[] = [];
+        try {
+          for await (const entry of dirHandle.values()) {
+            entries.push(entry.name);
+          }
+        } catch (err) {
+          console.error('Error reading directory:', err);
+        }
+        return entries;
       };
 
       const readFileFn = async (path: string): Promise<string> => {
-        // Placeholder - actual implementation would use mcp__remote-devices__ tools
-        console.warn('readFileFn not yet implemented - requires device filesystem integration');
-        return '';
+        try {
+          // Get the file from the directory handle
+          const fileName = path.split('/').pop();
+          if (!fileName) return '';
+
+          const fileHandle = await dirHandle.getFileHandle(fileName);
+          const file = await fileHandle.getFile();
+
+          // Convert file to data URL
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(file);
+          });
+        } catch (err) {
+          console.error('Error reading file:', err);
+          return '';
+        }
       };
 
       const result = await folderSearchCards(cardNames, folderPath, readDirFn, readFileFn);
