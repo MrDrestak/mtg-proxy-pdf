@@ -304,16 +304,16 @@ const App: React.FC = () => {
 
     const getColorSortKey = (colors: CardColor[] | undefined): [number, string] => {
       if (!colors || colors.length === 0) {
-        // Colorless: sort last
-        return [6, ''];
+        // Colorless/Artifacts: sort LAST
+        return [999, 'zzz'];  // Use high number and late string to ensure it sorts last
       }
 
       const colorCount = colors.length;
 
       if (colorCount === 1) {
-        // Monocolor: sort by WUBRG order
+        // Monocolor: sort by WUBRG order (0-4)
         const colorIndex = colorSequence.indexOf(colors[0]);
-        return [0, String(colorIndex).padStart(2, '0')];
+        return [colorIndex, String(colorIndex).padStart(2, '0')];
       }
 
       // For multicolor (2-5 colors), normalize to WUBRG order
@@ -324,29 +324,29 @@ const App: React.FC = () => {
       const colorKey = normalizedColors.join('');
 
       if (colorCount === 2) {
-        // Two-color: lexicographically sorted (already normalized above)
-        return [1, colorKey];
+        // Two-color: category 10 + key
+        return [10, colorKey];
       }
 
       if (colorCount === 3) {
-        // Three-color (Shards): sorted by sequence
-        return [2, colorKey];
+        // Three-color: category 20 + key
+        return [20, colorKey];
       }
 
       if (colorCount === 4) {
-        // Four-color: sorted by sequence
-        return [3, colorKey];
+        // Four-color: category 30 + key
+        return [30, colorKey];
       }
 
-      // Five-color
-      return [4, colorKey];
+      // Five-color: category 40
+      return [40, colorKey];
     };
 
     return [...cardsToSort].sort((a, b) => {
       const [aCategorySort, aColorKey] = getColorSortKey(a.colors);
       const [bCategorySort, bColorKey] = getColorSortKey(b.colors);
 
-      // First sort by category (mono, 2-color, 3-color, etc.)
+      // First sort by category (mono, 2-color, 3-color, etc., then colorless last)
       if (aCategorySort !== bCategorySort) {
         return aCategorySort - bCategorySort;
       }
