@@ -17,6 +17,7 @@ import CardManagerPopup from './components/CardManagerPopup';
 import SheetPreviewModal from './components/SheetPreviewModal';
 import FileValidationModal from './components/FileValidationModal';
 import FolderSearchModal from './components/FolderSearchModal';
+import PrintWorkflowInfo from './components/PrintWorkflowInfo';
 import { generatePDF } from './services/pdfGenerator';
 import { generateSVG } from './services/svgGenerator';
 import { processCardImageWithBlackCorners, ImageProcessOptions } from './services/imageProcessor';
@@ -78,6 +79,7 @@ const App: React.FC = () => {
   const [pendingCardsToAdd, setPendingCardsToAdd] = useState<CardImage[]>([]);
   const [showFolderSearch, setShowFolderSearch] = useState(false);
   const [isFolderSearching, setIsFolderSearching] = useState(false);
+  const [showPrintWorkflowInfo, setShowPrintWorkflowInfo] = useState(false);
 
   const scaleX = useMemo(() => {
     if (!useCompensation) return 1.0;
@@ -921,6 +923,13 @@ const App: React.FC = () => {
                       Cartas en flujo: {printCards.length} / 45
                     </p>
                   </div>
+                  <button
+                    onClick={() => setShowPrintWorkflowInfo(true)}
+                    className="p-2 text-slate-400 hover:text-blue-400 transition-colors"
+                    title="Ver guía del flujo de impresión"
+                  >
+                    <Info size={20} />
+                  </button>
                   {printCards.length > 0 && (
                     <button
                       onClick={() => setShowSheetPreview(true)}
@@ -1099,6 +1108,11 @@ const App: React.FC = () => {
         }}
         onClose={() => setShowSheetPreview(false)}
         isVisible={showSheetPreview}
+      />
+
+      <PrintWorkflowInfo
+        isVisible={showPrintWorkflowInfo}
+        onClose={() => setShowPrintWorkflowInfo(false)}
       />
 
       {/* Footer */}

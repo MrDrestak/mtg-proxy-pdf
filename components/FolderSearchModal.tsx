@@ -22,9 +22,11 @@ const FolderSearchModal: React.FC<FolderSearchModalProps> = ({
   if (!isVisible) return null;
 
   const handleSelectFolder = async () => {
-    // This would be implemented via MCP device filesystem
-    // For now, show placeholder
-    setError('Folder selection requires device filesystem integration');
+    // Simular folder selection con mock path
+    // En producción, esto usaría device filesystem picker
+    const mockPath = '/Users/walter/MTG/Cards'; // Mock for testing
+    setSelectedFolder(mockPath);
+    setError('');
   };
 
   const handleNextStep = () => {
