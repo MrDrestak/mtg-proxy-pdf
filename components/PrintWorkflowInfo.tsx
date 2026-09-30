@@ -32,8 +32,8 @@ const PrintWorkflowInfo: React.FC<PrintWorkflowInfoProps> = ({
             <ol className="list-decimal list-inside space-y-2 text-sm">
               <li>Haz clic en <strong>"Seleccionar Imágenes"</strong></li>
               <li>Se abrirá un diálogo para seleccionar múltiples archivos (JPG, PNG, GIF, WebP)</li>
-              <li>Máximo 4MB por imagen, máximo 45 cartas total</li>
-              <li>Las imágenes se procesan automáticamente (relleno de esquinas negras)</li>
+              <li>Máximo 10MB por imagen, máximo 45 cartas total</li>
+              <li>Las imágenes se procesan automáticamente (relleno de esquinas negras, escalada a calidad máxima)</li>
               <li>Revisa los resultados y haz clic <strong>"Añadir"</strong> para incluirlas</li>
             </ol>
           </section>
@@ -81,13 +81,14 @@ const PrintWorkflowInfo: React.FC<PrintWorkflowInfoProps> = ({
               <li>Resuelve conflictos renombrando archivos en tu carpeta</li>
               <li>Las cartas no encontradas aparecen en el resumen para referencia</li>
               <li>El PDF se genera con márgenes de corte en rojo y líneas de separación grises</li>
-              <li>Máxima resolución: 800px (mantiene calidad sin exceso de tamaño)</li>
+              <li>Máxima resolución: 1200px para calidad de impresión profesional</li>
+              <li>Sube imágenes de alta calidad (10MB máximo) para resultados óptimos en pintura</li>
             </ul>
           </section>
 
           <div className="border-t pt-4 bg-gray-50 p-4 rounded-lg text-xs text-gray-600">
             <p>
-              <strong>Versión:</strong> 1.0 • <strong>Límites:</strong> 45 cartas, 4MB/imagen, JPG/PNG/GIF/WebP
+              <strong>Versión:</strong> 1.1 • <strong>Límites:</strong> 45 cartas, 10MB/imagen, JPG/PNG/GIF/WebP • <strong>Resolución:</strong> Máxima calidad para impresión
             </p>
           </div>
         </div>

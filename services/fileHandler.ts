@@ -2,9 +2,9 @@ import { CardImage } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { fileToDataUrl, processCardImageWithBlackCorners } from './imageProcessor';
 
-export const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
+export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 export const MAX_CARDS = 45;
-export const RESIZE_WIDTH = 800;
+export const RESIZE_WIDTH = 1200; // Higher resolution for print quality
 
 /**
  * Validates file is an image
@@ -44,7 +44,7 @@ export async function processImageFile(
   if (!isValidFileSize(file)) {
     return {
       card: null as any,
-      error: `Archivo muy grande: ${file.name}. Máximo 4MB.`
+      error: `Archivo muy grande: ${file.name}. Máximo 10MB.`
     };
   }
 
