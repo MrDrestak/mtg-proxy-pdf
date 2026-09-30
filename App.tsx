@@ -308,10 +308,15 @@ const App: React.FC = () => {
         return [999, 'zzz'];  // Use high number and late string to ensure it sorts last
       }
 
+      // Check if colorless (C)
+      if (colors.length === 1 && colors[0] === 'C') {
+        return [999, 'zzz'];  // Colorless sort last
+      }
+
       const colorCount = colors.length;
 
       if (colorCount === 1) {
-        // Monocolor: sort by WUBRG order (0-4)
+        // Monocolor: sort by WUBRG order (0-4), skipping M (multicolor label) and C (colorless)
         const colorIndex = colorSequence.indexOf(colors[0]);
         return [colorIndex, String(colorIndex).padStart(2, '0')];
       }
@@ -347,8 +352,8 @@ const App: React.FC = () => {
       if (filterColors && filterColors.length > 0) {
         const aHasFilterColor = a.colors && filterColors.some(c => a.colors?.includes(c));
         const bHasFilterColor = b.colors && filterColors.some(c => b.colors?.includes(c));
-        const aIsColorless = !a.colors || a.colors.length === 0;
-        const bIsColorless = !b.colors || b.colors.length === 0;
+        const aIsColorless = !a.colors || a.colors.length === 0 || (a.colors.length === 1 && a.colors[0] === 'C');
+        const bIsColorless = !b.colors || b.colors.length === 0 || (b.colors.length === 1 && b.colors[0] === 'C');
 
         // Priority: has filter color > colorless > (shouldn't happen with current filter)
         if (aHasFilterColor !== bHasFilterColor) {
@@ -391,7 +396,7 @@ const App: React.FC = () => {
       // Color filter: show cards that match selected colors OR colorless cards
       if (selectedColors.length > 0) {
         const hasSelectedColor = card.colors && selectedColors.some(c => card.colors?.includes(c));
-        const isColorless = !card.colors || card.colors.length === 0;
+        const isColorless = !card.colors || card.colors.length === 0 || (card.colors.length === 1 && card.colors[0] === 'C');
         if (!hasSelectedColor && !isColorless) {
           return false;
         }
