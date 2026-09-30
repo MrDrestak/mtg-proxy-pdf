@@ -55,7 +55,7 @@ const CardPreview: React.FC<CardPreviewProps> = ({
         ...(card?.isFoil && {
           background: [
             'linear-gradient(115deg, transparent 20%, rgba(255,255,255,0.55) 32%, transparent 44%, rgba(255,255,255,0.35) 62%, transparent 74%)',
-            'linear-gradient(135deg, #ff5ecb 0%, #7a5cff 18%, #2ec5ff 36%, #35f2b0 54%, #ffe45c 72%, #ff7a5c 88%, #ff5ecb 100%)'
+            'linear-gradient(115deg, #c0d0ff 0%, #60a8ff 25%, #00d4ff 50%, #00f0ff 75%, #c0d0ff 100%)'
           ].join(', '),
           backgroundSize: '220% 220%, 300% 300%',
           // Con mouse encima (galería) el holograma sigue el puntero; si no, se anima solo
