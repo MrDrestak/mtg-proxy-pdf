@@ -72,20 +72,14 @@ const FolderSearchModal: React.FC<FolderSearchModalProps> = ({
       setSearchProgress(0);
       setSearchStatus('Iniciando búsqueda...');
 
-      // Simulate progress updates
-      const progressInterval = setInterval(() => {
-        setSearchProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + Math.random() * 30;
-        });
-      }, 500);
+      // Expose progress updater to App component
+      (window as any).__updateSearchProgress = (progress: number, status: string) => {
+        setSearchProgress(progress);
+        setSearchStatus(status);
+      };
 
       await onSearch(names, selectedFolder);
 
-      clearInterval(progressInterval);
       setSearchProgress(100);
       setSearchStatus('¡Búsqueda completada!');
 

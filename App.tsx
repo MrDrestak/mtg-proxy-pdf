@@ -457,42 +457,14 @@ const App: React.FC = () => {
         throw new Error('No se seleccionó carpeta válida');
       }
 
-      // Implement File System Access API callbacks
-      const readDirFn = async (path: string): Promise<string[]> => {
-        const entries: string[] = [];
-        try {
-          for await (const entry of dirHandle.values()) {
-            entries.push(entry.name);
-          }
-        } catch (err) {
-          console.error('Error reading directory:', err);
-        }
-        return entries;
+      // Progress callback from search
+      const onSearchProgress = (current: number, total: number) => {
+        // Update progress in modal: 0-90% during search, then 100% at end
+        const progressPercent = (current / total) * 90;
+        (window as any).__updateSearchProgress?.(progressPercent, `Procesando: ${current} de ${total} cartas`);
       };
 
-      const readFileFn = async (path: string): Promise<string> => {
-        try {
-          // Get the file from the directory handle
-          const fileName = path.split('/').pop();
-          if (!fileName) return '';
-
-          const fileHandle = await dirHandle.getFileHandle(fileName);
-          const file = await fileHandle.getFile();
-
-          // Convert file to data URL
-          return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = () => reject(reader.error);
-            reader.readAsDataURL(file);
-          });
-        } catch (err) {
-          console.error('Error reading file:', err);
-          return '';
-        }
-      };
-
-      const result = await folderSearchCards(cardNames, folderPath, readDirFn, readFileFn);
+      const result = await folderSearchCards(cardNames, dirHandle, onSearchProgress);
 
       // Show search summary
       setSearchSummary(result);
