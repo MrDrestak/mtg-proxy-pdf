@@ -15,9 +15,11 @@ import PrintCardSelector from './components/PrintCardSelector';
 import SearchSummaryModal from './components/SearchSummaryModal';
 import CardManagerPopup from './components/CardManagerPopup';
 import SheetPreviewModal from './components/SheetPreviewModal';
+import FileValidationModal from './components/FileValidationModal';
 import { generatePDF } from './services/pdfGenerator';
 import { generateSVG } from './services/svgGenerator';
 import { processCardImageWithBlackCorners, ImageProcessOptions } from './services/imageProcessor';
+import { processMultipleImageFiles, openFilePickerDialog } from './services/fileHandler';
 import { useSupabaseCards } from './hooks/useSupabaseCards';
 import { useWatermarkSettings } from './hooks/useWatermarkSettings';
 
@@ -69,6 +71,9 @@ const App: React.FC = () => {
   const [showSearchSummary, setShowSearchSummary] = useState(false);
   const [showCardManager, setShowCardManager] = useState(false);
   const [showSheetPreview, setShowSheetPreview] = useState(false);
+  const [fileValidationResult, setFileValidationResult] = useState<any>(null);
+  const [showFileValidation, setShowFileValidation] = useState(false);
+  const [pendingCardsToAdd, setPendingCardsToAdd] = useState<CardImage[]>([]);
 
   const scaleX = useMemo(() => {
     if (!useCompensation) return 1.0;
@@ -406,9 +411,31 @@ const App: React.FC = () => {
   };
 
   // Print Workflow Handlers
-  const handleSelectManualCards = () => {
-    // Will be implemented in Fase 2 - Opens file picker dialog
-    console.log('Manual file picker');
+  const handleSelectManualCards = async () => {
+    try {
+      // Open file picker dialog
+      const fileList = await openFilePickerDialog();
+      if (!fileList || fileList.length === 0) return;
+
+      // Convert FileList to array and process
+      const files = Array.from(fileList);
+      const { cards, errors, skipped } = await processMultipleImageFiles(
+        files,
+        printCards.length,
+        true // Apply black corner processing
+      );
+
+      // Store validation result and pending cards
+      setFileValidationResult({
+        success: cards.length,
+        errors,
+        skipped
+      });
+      setPendingCardsToAdd(cards);
+      setShowFileValidation(true);
+    } catch (err) {
+      console.error('File picker error:', err);
+    }
   };
 
   const handleSelectFolder = () => {
@@ -461,6 +488,27 @@ const App: React.FC = () => {
       setPrintCards(newCards);
       setPrintCardsOrder(newOrder.length > 0 ? newOrder : []);
     }
+  };
+
+  const handleConfirmFileValidation = () => {
+    if (pendingCardsToAdd.length > 0) {
+      // Add pending cards to print workflow
+      const newCards = [...printCards, ...pendingCardsToAdd];
+      const newOrder = Array.from({ length: newCards.length }, (_, i) => i);
+      setPrintCards(newCards);
+      setPrintCardsOrder(newOrder);
+
+      // Clear validation state
+      setShowFileValidation(false);
+      setFileValidationResult(null);
+      setPendingCardsToAdd([]);
+    }
+  };
+
+  const handleCloseFileValidation = () => {
+    setShowFileValidation(false);
+    setFileValidationResult(null);
+    setPendingCardsToAdd([]);
   };
 
   return (
@@ -831,14 +879,31 @@ const App: React.FC = () => {
             </div>
 
             {/* Print Card Selector - New Workflow */}
-            <div className="bg-gradient-to-br from-slate-900/50 to-blue-900/20 rounded-xl border border-blue-500/20 p-4 sm:p-6">
-              <h3 className="text-lg font-bold text-white mb-4">Nuevo Flujo de Selección</h3>
-              <PrintCardSelector
-                onSelectManual={handleSelectManualCards}
-                onSelectFolder={handleSelectFolder}
-                isLoading={false}
-              />
-            </div>
+            {cards.length > 0 && (
+              <div className="bg-gradient-to-br from-slate-900/50 to-blue-900/20 rounded-xl border border-blue-500/20 p-4 sm:p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-white">Nuevo Flujo de Selección</h3>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Cartas en flujo: {printCards.length} / 45
+                    </p>
+                  </div>
+                  {printCards.length > 0 && (
+                    <button
+                      onClick={() => setShowSheetPreview(true)}
+                      className="px-3 py-1 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+                    >
+                      Ver Hojas
+                    </button>
+                  )}
+                </div>
+                <PrintCardSelector
+                  onSelectManual={handleSelectManualCards}
+                  onSelectFolder={handleSelectFolder}
+                  isLoading={false}
+                />
+              </div>
+            )}
 
             {/* Legacy Print Card Selector - 3x3 Grid */}
             {cards.length > 0 && (
@@ -956,6 +1021,13 @@ const App: React.FC = () => {
       />
 
       {/* Print Workflow Modals */}
+      <FileValidationModal
+        result={fileValidationResult}
+        isVisible={showFileValidation}
+        onClose={handleCloseFileValidation}
+        onConfirm={handleConfirmFileValidation}
+      />
+
       <SearchSummaryModal
         searchResult={searchSummary || { processed: 0, found: [], notFound: [], conflicts: {} }}
         onAccept={handleAcceptSearchResults}
