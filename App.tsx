@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { Upload, Trash2, Layout, Info, FileText, List, Lock } from 'lucide-react';
+import { Upload, Trash2, Layout, Info, FileText, List, Lock, ChevronDown } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { CardImage, PageLayout, CardColor } from './types';
 import { GRID, MM_TO_PX, PaperFormat, PAPER_SIZES } from './constants';
@@ -55,6 +55,7 @@ const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedColors, setSelectedColors] = useState<CardColor[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
   const scaleX = useMemo(() => {
     if (!useCompensation) return 1.0;
@@ -392,17 +393,35 @@ const App: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-8">
-                {/* Gallery Filters */}
-                <GalleryFilters
-                  cards={cards}
-                  searchQuery={searchQuery}
-                  onSearchChange={setSearchQuery}
-                  selectedColors={selectedColors}
-                  onColorToggle={handleColorToggle}
-                  selectedTags={selectedTags}
-                  onTagToggle={handleTagToggle}
-                  onClearFilters={handleClearFilters}
-                />
+                {/* Filter Toggle Button */}
+                <button
+                  onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-slate-900/50 border border-blue-500/20 rounded-lg hover:bg-slate-900/70 transition-all hover:border-blue-500/40"
+                >
+                  <span className="text-sm font-semibold text-slate-300">
+                    {isFiltersOpen ? 'Ocultar Filtros' : 'Mostrar Filtros'}
+                  </span>
+                  <ChevronDown
+                    size={18}
+                    className={`text-blue-400 transition-transform duration-300 ${
+                      isFiltersOpen ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+
+                {/* Gallery Filters - Collapsible */}
+                {isFiltersOpen && (
+                  <GalleryFilters
+                    cards={cards}
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    selectedColors={selectedColors}
+                    onColorToggle={handleColorToggle}
+                    selectedTags={selectedTags}
+                    onTagToggle={handleTagToggle}
+                    onClearFilters={handleClearFilters}
+                  />
+                )}
 
                 {/* Gallery Info */}
                 <div>

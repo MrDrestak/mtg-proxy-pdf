@@ -51,6 +51,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
   const [formTags, setFormTags] = useState<string[]>([]);
   const [newTagInput, setNewTagInput] = useState('');
   const [showTagManager, setShowTagManager] = useState(false);
+  const [formIsFoil, setFormIsFoil] = useState(false);
+  const [editIsFoil, setEditIsFoil] = useState(false);
 
   // Extract all existing tags from cards, with default "Anime" tag
   const existingTags = useMemo(() => {
@@ -103,6 +105,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
             dataUrl,
             colors: formColors.length > 0 ? formColors : undefined,
             tags: formTags.length > 0 ? formTags : undefined,
+            isFoil: formIsFoil || undefined,
             createdAt: new Date(),
           };
           setUploadProgress(((i + 0.5) / totalFiles) * 100);
@@ -136,6 +139,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
       setFormNickname('');
       setFormColors([]);
       setFormTags([]);
+      setFormIsFoil(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -150,16 +154,19 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
     setEditingCardId(card.id);
     setEditNickname(card.nickname || '');
     setEditTags(card.tags || []);
+    setEditIsFoil(card.isFoil || false);
   };
 
   const saveCardEdit = async (cardId: string) => {
     await onUpdateCard(cardId, {
       nickname: editNickname || undefined,
-      tags: editTags
+      tags: editTags,
+      isFoil: editIsFoil || undefined
     });
     setEditingCardId(null);
     setEditNickname('');
     setEditTags([]);
+    setEditIsFoil(false);
   };
 
   return (
@@ -305,6 +312,20 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                   ))}
                 </div>
               </div>
+
+              {/* Foil Checkbox */}
+              <label className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-600 hover:border-blue-500/30 cursor-pointer transition-all">
+                <input
+                  type="checkbox"
+                  checked={formIsFoil}
+                  onChange={(e) => setFormIsFoil(e.target.checked)}
+                  className="w-4 h-4 rounded accent-blue-500 cursor-pointer"
+                />
+                <div>
+                  <p className="text-sm font-semibold text-slate-200">Es Foil (fondo holográfico)</p>
+                  <p className="text-xs text-slate-400">Aplica fondo holográfico para imágenes PNG transparentes</p>
+                </div>
+              </label>
 
               {/* Tags Selection - Dropdown + Add Button */}
               <div className="space-y-3">
@@ -516,6 +537,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                             </div>
                           </div>
 
+                          {/* Edit Foil Checkbox */}
+                          <label className="flex items-center gap-2 cursor-pointer hover:bg-slate-700 p-1.5 rounded text-xs bg-slate-600 border border-slate-500">
+                            <input
+                              type="checkbox"
+                              checked={editIsFoil}
+                              onChange={(e) => setEditIsFoil(e.target.checked)}
+                              className="w-3 h-3 rounded accent-blue-500 cursor-pointer"
+                            />
+                            <span className="text-slate-200 font-semibold">Es Foil</span>
+                          </label>
+
                           {/* Save Button */}
                           <button
                             onClick={() => saveCardEdit(card.id).catch(err => console.error('Error saving card:', err))}
@@ -528,16 +560,20 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                         <div className="space-y-2 flex flex-col h-full">
                           {/* Display Nickname - Already shown above, skip here */}
 
-                          {/* Display Tags */}
-                          {card.tags && card.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-0.5">
-                              {card.tags.map((tag) => (
-                                <span key={tag} className="px-1.5 py-0.5 bg-blue-600/60 text-blue-100 text-[10px] rounded-full truncate">
-                                  {tag}
-                                </span>
-                              ))}
-                            </div>
-                          )}
+                          {/* Display Tags & Foil Badge */}
+                          <div className="flex flex-wrap gap-0.5">
+                            {card.isFoil && (
+                              <span className="px-1.5 py-0.5 bg-blue-900/80 text-amber-300 text-[10px] rounded-full truncate font-bold flex items-center gap-0.5">
+                                <span>✦</span>
+                                <span>FOIL</span>
+                              </span>
+                            )}
+                            {card.tags && card.tags.map((tag) => (
+                              <span key={tag} className="px-1.5 py-0.5 bg-blue-600/60 text-blue-100 text-[10px] rounded-full truncate">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
 
                           {/* Edit Button Section */}
                           <div className="mt-auto pt-2 border-t border-slate-700/30 space-y-1.5">
