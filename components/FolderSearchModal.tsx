@@ -171,7 +171,7 @@ Counterspell
 Lightning Strike
 Snapcaster Mage
 ..."
-                className="w-full h-64 p-3 border border-gray-300 rounded-lg font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full h-64 p-3 border border-gray-300 rounded-lg font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white placeholder-gray-400"
               />
 
               <div className="text-xs text-gray-500">
