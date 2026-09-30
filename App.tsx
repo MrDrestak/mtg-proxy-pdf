@@ -16,10 +16,12 @@ import SearchSummaryModal from './components/SearchSummaryModal';
 import CardManagerPopup from './components/CardManagerPopup';
 import SheetPreviewModal from './components/SheetPreviewModal';
 import FileValidationModal from './components/FileValidationModal';
+import FolderSearchModal from './components/FolderSearchModal';
 import { generatePDF } from './services/pdfGenerator';
 import { generateSVG } from './services/svgGenerator';
 import { processCardImageWithBlackCorners, ImageProcessOptions } from './services/imageProcessor';
 import { processMultipleImageFiles, openFilePickerDialog } from './services/fileHandler';
+import { folderSearchCards, parseCardNamesList } from './services/folderSearch';
 import { useSupabaseCards } from './hooks/useSupabaseCards';
 import { useWatermarkSettings } from './hooks/useWatermarkSettings';
 
@@ -74,6 +76,8 @@ const App: React.FC = () => {
   const [fileValidationResult, setFileValidationResult] = useState<any>(null);
   const [showFileValidation, setShowFileValidation] = useState(false);
   const [pendingCardsToAdd, setPendingCardsToAdd] = useState<CardImage[]>([]);
+  const [showFolderSearch, setShowFolderSearch] = useState(false);
+  const [isFolderSearching, setIsFolderSearching] = useState(false);
 
   const scaleX = useMemo(() => {
     if (!useCompensation) return 1.0;
@@ -439,8 +443,37 @@ const App: React.FC = () => {
   };
 
   const handleSelectFolder = () => {
-    // Will be implemented in Fase 3 - Opens folder selector
-    console.log('Folder search mode');
+    setShowFolderSearch(true);
+  };
+
+  const handleFolderSearch = async (cardNames: string[], folderPath: string) => {
+    setIsFolderSearching(true);
+    try {
+      // MCP device filesystem callbacks
+      // These would be implemented via device bridge tools
+      const readDirFn = async (path: string): Promise<string[]> => {
+        // Placeholder - actual implementation would use mcp__remote-devices__ tools
+        console.warn('readDirFn not yet implemented - requires device filesystem integration');
+        return [];
+      };
+
+      const readFileFn = async (path: string): Promise<string> => {
+        // Placeholder - actual implementation would use mcp__remote-devices__ tools
+        console.warn('readFileFn not yet implemented - requires device filesystem integration');
+        return '';
+      };
+
+      const result = await folderSearchCards(cardNames, folderPath, readDirFn, readFileFn);
+
+      // Show search summary
+      setSearchSummary(result);
+      setShowSearchSummary(true);
+      setShowFolderSearch(false);
+    } catch (err) {
+      console.error('Folder search error:', err);
+    } finally {
+      setIsFolderSearching(false);
+    }
   };
 
   const handleAcceptSearchResults = () => {
@@ -1021,6 +1054,13 @@ const App: React.FC = () => {
       />
 
       {/* Print Workflow Modals */}
+      <FolderSearchModal
+        isVisible={showFolderSearch}
+        onClose={() => setShowFolderSearch(false)}
+        onSearch={handleFolderSearch}
+        isSearching={isFolderSearching}
+      />
+
       <FileValidationModal
         result={fileValidationResult}
         isVisible={showFileValidation}
