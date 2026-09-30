@@ -4,6 +4,29 @@ import { CardImage, CardColor } from '../types';
 import { fileToDataUrl } from '../services/imageProcessor';
 import CardPreview from './CardPreview';
 
+// Resize image to 800px width before upload
+const resizeImage = (dataUrl: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const maxWidth = 800;
+      const ratio = maxWidth / img.width;
+      canvas.width = maxWidth;
+      canvas.height = img.height * ratio;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Failed to get canvas context'));
+        return;
+      }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => reject(new Error('Failed to load image'));
+    img.src = dataUrl;
+  });
+};
+
 const MANA_COLORS: { value: CardColor; label: string; color: string }[] = [
   { value: 'W', label: 'Blanco', color: 'bg-yellow-100' },
   { value: 'U', label: 'Azul', color: 'bg-blue-500' },
@@ -92,8 +115,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
 
         try {
           setUploadStatus(`Procesando ${i + 1}/${totalFiles}: ${file.name.substring(0, 20)}...`);
-          const dataUrl = await fileToDataUrl(file);
+          let dataUrl = await fileToDataUrl(file);
           console.log(`[AdminPanel] File converted to dataUrl: ${file.name}`);
+
+          // Resize image to 800px width for performance
+          setUploadStatus(`Redimensionando ${i + 1}/${totalFiles}: ${file.name.substring(0, 20)}...`);
+          dataUrl = await resizeImage(dataUrl);
+          console.log(`[AdminPanel] Image resized: ${file.name}`);
 
           // Use form metadata if provided, else use filename
           const cardName = formName || file.name.replace(/\.[^/.]+$/, '');
@@ -113,7 +141,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
           // Supabase save is async
           setUploadStatus(`Guardando en Supabase: ${file.name.substring(0, 20)}...`);
           console.log(`[AdminPanel] Uploading to Supabase: ${file.name}`);
-          // Pass dataUrl as second argument for Firebase Storage upload
+          // Pass resized dataUrl to Supabase
           await onAddCard(newCard, dataUrl);
           console.log(`[AdminPanel] Successfully uploaded: ${file.name}`);
 
