@@ -947,66 +947,6 @@ const App: React.FC = () => {
               </div>
             )}
 
-            {/* Legacy Print Card Selector - 3x3 Grid */}
-            {cards.length > 0 && (
-              <div className="bg-white/5 border border-blue-500/20 rounded-xl overflow-hidden">
-                <div className="px-4 sm:px-6 py-3 sm:py-4 bg-slate-900/50 border-b border-blue-500/20">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="font-bold text-white text-sm sm:text-base">Seleccionar Cartas para Imprimir ({printCards.length})</span>
-                    {printCards.length > 0 && (
-                      <button
-                        onClick={() => setPrintCards([])}
-                        className="text-xs text-amber-400 hover:text-amber-300 transition-colors font-semibold"
-                      >
-                        Limpiar Selección
-                      </button>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-400">Haz clic en las cartas para seleccionarlas (máximo 9 por página)</p>
-                </div>
-
-                <div className="p-3 sm:p-4 max-h-[600px] overflow-y-auto">
-                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                    {cards.map((card) => (
-                      <button
-                        key={card.id}
-                        onClick={() => {
-                          setPrintCards(prev => {
-                            const isSelected = prev.some(c => c.id === card.id);
-                            if (isSelected) {
-                              return prev.filter(c => c.id !== card.id);
-                            } else {
-                              // Max 9 cards (one page)
-                              if (prev.length < 9) {
-                                return [...prev, card];
-                              }
-                              return prev;
-                            }
-                          });
-                        }}
-                        className={`relative group aspect-[63/88] rounded-lg overflow-hidden transition-all border-2 ${
-                          printCards.some(c => c.id === card.id)
-                            ? 'border-blue-500 ring-2 ring-blue-400/50'
-                            : 'border-slate-700 hover:border-blue-500/50'
-                        }`}
-                      >
-                        <img src={card.dataUrl} alt={card.name} className="w-full h-full object-cover" />
-                        {printCards.some(c => c.id === card.id) && (
-                          <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
-                            <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-sm">
-                              ✓
-                            </div>
-                          </div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                  {cards.length === 0 && (
-                    <p className="text-center text-slate-400 text-sm py-8">No hay cartas disponibles</p>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         )}
       </main>
