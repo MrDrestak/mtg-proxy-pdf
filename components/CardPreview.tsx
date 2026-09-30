@@ -56,14 +56,13 @@ const CardPreview: React.FC<CardPreviewProps> = ({
       style={{
         ...(card?.isFoil && {
           background: [
-            'linear-gradient(115deg, transparent 20%, rgba(255,255,255,0.55) 32%, transparent 44%, rgba(255,255,255,0.35) 62%, transparent 74%)',
-            'linear-gradient(115deg, #e8e8e8 0%, #b0b8c8 25%, #a0a8b8 50%, #d0d8e8 75%, #e8e8e8 100%)',
-            'linear-gradient(135deg, rgba(255,92,203,0.35) 0%, rgba(122,92,255,0.35) 18%, rgba(46,197,255,0.35) 36%, rgba(53,242,176,0.35) 54%, rgba(255,228,92,0.35) 72%, rgba(255,122,92,0.35) 88%, rgba(255,92,203,0.35) 100%)'
+            'linear-gradient(135deg, #ff5ecb 0%, #7a5cff 18%, #2ec5ff 36%, #35f2b0 54%, #ffe45c 72%, #ff7a5c 88%, #ff5ecb 100%)',
+            'linear-gradient(115deg, rgba(255,255,255,0.15) 0%, rgba(200,220,255,0.08) 50%, rgba(255,255,255,0.15) 100%)'
           ].join(', '),
-          backgroundSize: '220% 220%, 300% 300%, 300% 300%',
+          backgroundSize: '300% 300%, 200% 200%',
           // Con mouse encima (galería) el holograma sigue el puntero; si no, se anima solo
           ...(foilShift
-            ? { backgroundPosition: `${foilShift.x}% ${foilShift.y}%, ${foilShift.x}% ${foilShift.y}%, ${foilShift.x}% ${foilShift.y}%` }
+            ? { backgroundPosition: `${foilShift.x}% ${foilShift.y}%, ${foilShift.x}% ${foilShift.y}%` }
             : { animation: 'foil-shift 7s ease-in-out infinite' })
         }),
         ...(fillContainer ? { width: '100%', aspectRatio: '63 / 88' } : { width: `${width}px`, height: `${height}px` })
@@ -76,9 +75,9 @@ const CardPreview: React.FC<CardPreviewProps> = ({
           {card.isFoil && (
             <style>{`
               @keyframes foil-shift {
-                0%   { background-position: 0% 30%, 0% 50%, 0% 50%; }
-                50%  { background-position: 100% 70%, 100% 50%, 100% 50%; }
-                100% { background-position: 0% 30%, 0% 50%, 0% 50%; }
+                0%   { background-position: 0% 30%, 0% 50%; }
+                50%  { background-position: 100% 70%, 100% 50%; }
+                100% { background-position: 0% 30%, 0% 50%; }
               }
               @media (prefers-reduced-motion: reduce) {
                 [style*="foil-shift"] { animation: none !important; }
