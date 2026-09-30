@@ -42,12 +42,17 @@ const CardPreview: React.FC<CardPreviewProps> = ({
       ref={cardRef}
       className={`group relative flex items-center justify-center overflow-hidden transition-all duration-200 rounded-lg ${
         card
-          ? foilMode
+          ? card.isFoil
+            ? 'border border-blue-500/40 shadow-xl'
+            : foilMode
             ? 'bg-[repeating-conic-gradient(#cbd5e1_0%_25%,#f1f5f9_0%_50%)] bg-[length:12px_12px] border border-blue-400/60 shadow-xl'
             : 'bg-black border border-slate-700/60 shadow-xl hover:shadow-blue-500/30'
           : 'border-2 border-dashed border-slate-600 bg-slate-950 hover:border-blue-500/50'
       }`}
-      style={fillContainer ? { width: '100%', aspectRatio: '63 / 88' } : { width: `${width}px`, height: `${height}px` }}
+      style={{
+        ...(card?.isFoil && { background: 'linear-gradient(135deg, #0066CC 0%, #6600FF 25%, #00CC99 50%, #FF00FF 75%, #0099FF 100%)' }),
+        ...(fillContainer ? { width: '100%', aspectRatio: '63 / 88' } : { width: `${width}px`, height: `${height}px` })
+      }}
       onContextMenu={handleContextMenu}
       onDragStart={handleDragStart}
     >
@@ -79,7 +84,7 @@ const CardPreview: React.FC<CardPreviewProps> = ({
             </button>
           )}
 
-          {foilMode && (
+          {(foilMode || card.isFoil) && (
             <div className="absolute bottom-1 left-1 pointer-events-none bg-blue-900/80 text-amber-300 text-[9px] font-bold px-1.5 py-0.5 rounded shadow-xs flex items-center gap-1 backdrop-blur-xs">
               <span>✦</span>
               <span>FOIL</span>
