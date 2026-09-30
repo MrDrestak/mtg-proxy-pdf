@@ -266,9 +266,32 @@ const App: React.FC = () => {
     }
   };
 
+  // Sort cards by color identity (WUBRG order, then multicolor, then colorless)
+  const sortCardsByColor = (cardsToSort: CardImage[]): CardImage[] => {
+    const colorOrder: Record<CardColor, number> = {
+      'W': 1, 'U': 2, 'B': 3, 'R': 4, 'G': 5, 'M': 6, 'C': 7
+    };
+
+    return [...cardsToSort].sort((a, b) => {
+      // Get the "primary" color (first in the color identity)
+      const aColors = a.colors || [];
+      const bColors = b.colors || [];
+
+      const aPrimary = aColors.length > 0 ? colorOrder[aColors[0]] : 7;
+      const bPrimary = bColors.length > 0 ? colorOrder[bColors[0]] : 7;
+
+      if (aPrimary !== bPrimary) {
+        return aPrimary - bPrimary;
+      }
+
+      // If same primary color, sort by name alphabetically
+      return a.name.localeCompare(b.name);
+    });
+  };
+
   // Filter logic
   const filteredGalleryCards = useMemo(() => {
-    return cards.filter(card => {
+    const filtered = cards.filter(card => {
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
@@ -297,6 +320,9 @@ const App: React.FC = () => {
 
       return true;
     });
+
+    // Sort by color identity (default view)
+    return sortCardsByColor(filtered);
   }, [cards, searchQuery, selectedColors, selectedTags, onlyFoil]);
 
   const handleColorToggle = (color: CardColor) => {
