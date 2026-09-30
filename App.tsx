@@ -299,7 +299,7 @@ const App: React.FC = () => {
   // 4. Four-color (sorted by WUBRG sequence)
   // 5. Five-color (all together)
   // 6. Colorless (last)
-  const sortCardsByColor = (cardsToSort: CardImage[]): CardImage[] => {
+  const sortCardsByColor = (cardsToSort: CardImage[], filterColors?: CardColor[]): CardImage[] => {
     const colorSequence = ['W', 'U', 'B', 'R', 'G'];
 
     const getColorSortKey = (colors: CardColor[] | undefined): [number, string] => {
@@ -343,6 +343,21 @@ const App: React.FC = () => {
     };
 
     return [...cardsToSort].sort((a, b) => {
+      // When filter is active, prioritize by match type and selected color
+      if (filterColors && filterColors.length > 0) {
+        const aHasFilterColor = a.colors && filterColors.some(c => a.colors?.includes(c));
+        const bHasFilterColor = b.colors && filterColors.some(c => b.colors?.includes(c));
+        const aIsColorless = !a.colors || a.colors.length === 0;
+        const bIsColorless = !b.colors || b.colors.length === 0;
+
+        // Priority: has filter color > colorless > (shouldn't happen with current filter)
+        if (aHasFilterColor !== bHasFilterColor) {
+          return aHasFilterColor ? -1 : 1;
+        }
+
+        // Within each category, sort normally
+      }
+
       const [aCategorySort, aColorKey] = getColorSortKey(a.colors);
       const [bCategorySort, bColorKey] = getColorSortKey(b.colors);
 
@@ -373,9 +388,11 @@ const App: React.FC = () => {
         if (!matchesSearch) return false;
       }
 
-      // Color filter
+      // Color filter: show cards that match selected colors OR colorless cards
       if (selectedColors.length > 0) {
-        if (!card.colors || !selectedColors.some(c => card.colors?.includes(c))) {
+        const hasSelectedColor = card.colors && selectedColors.some(c => card.colors?.includes(c));
+        const isColorless = !card.colors || card.colors.length === 0;
+        if (!hasSelectedColor && !isColorless) {
           return false;
         }
       }
@@ -393,8 +410,8 @@ const App: React.FC = () => {
       return true;
     });
 
-    // Sort by color identity (default view)
-    return sortCardsByColor(filtered);
+    // Sort by color identity (with optional color filter priority)
+    return sortCardsByColor(filtered, selectedColors.length > 0 ? selectedColors : undefined);
   }, [cards, searchQuery, selectedColors, selectedTags, onlyFoil]);
 
   const handleColorToggle = (color: CardColor) => {
