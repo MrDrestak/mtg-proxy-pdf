@@ -89,6 +89,14 @@ const GalleryCard: React.FC<GalleryCardProps> = ({
                 }
               : undefined
           }
+          shineShift={
+            isHovering && card.isFoil
+              ? {
+                  x: Math.max(0, Math.min(100, 50 + tilt.y * 8)),
+                  y: Math.max(0, Math.min(100, 50 + tilt.x * 8)),
+                }
+              : undefined
+          }
         />
       </div>
 

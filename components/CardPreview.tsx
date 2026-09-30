@@ -14,6 +14,7 @@ interface CardPreviewProps {
   watermarkScale?: number;
   fillContainer?: boolean;
   foilShift?: { x: number; y: number };
+  shineShift?: { x: number; y: number };
 }
 
 const CardPreview: React.FC<CardPreviewProps> = ({
@@ -24,7 +25,8 @@ const CardPreview: React.FC<CardPreviewProps> = ({
   watermarkOpacity = 35,
   watermarkScale = 100,
   fillContainer = false,
-  foilShift
+  foilShift,
+  shineShift
 }) => {
   const width = CARD.width * MM_TO_PX;
   const height = CARD.height * MM_TO_PX;
@@ -92,6 +94,17 @@ const CardPreview: React.FC<CardPreviewProps> = ({
           {/* Watermark Overlay */}
           {showWatermark && (
             <WatermarkStamp opacity={watermarkOpacity} scale={watermarkScale} />
+          )}
+
+          {/* Dynamic Metallic Shine Layer (Foil only, on hover) */}
+          {card.isFoil && shineShift && (
+            <div
+              className="absolute inset-0 pointer-events-none rounded-lg"
+              style={{
+                background: `radial-gradient(circle at ${shineShift.x}% ${shineShift.y}%, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.2) 20%, transparent 60%)`,
+                opacity: 0.8,
+              }}
+            />
           )}
 
           {/* Delete Button */}
