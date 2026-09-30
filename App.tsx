@@ -33,7 +33,7 @@ const App: React.FC = () => {
   const [paperFormat, setPaperFormat] = useState<PaperFormat>('a4');
   const [fixRoundedCorners, setFixRoundedCorners] = useState(true);
   const [foilMode, setFoilMode] = useState(false);
-  const [deepBlackLevel, setDeepBlackLevel] = useState<number>(35);
+  const [deepBlackLevel, setDeepBlackLevel] = useState<number>(45);
   const [boostContrast, setBoostContrast] = useState(true);
   const [useCompensation, setUseCompensation] = useState(false);
   const [compensationPreset, setCompensationPreset] = useState<'epson_l3250' | 'custom'>('epson_l3250');
@@ -57,6 +57,9 @@ const App: React.FC = () => {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [onlyFoil, setOnlyFoil] = useState(false);
+
+  // Print Tab States - Separate from Gallery
+  const [printCards, setPrintCards] = useState<CardImage[]>([]);
 
   const scaleX = useMemo(() => {
     if (!useCompensation) return 1.0;
@@ -147,9 +150,10 @@ const App: React.FC = () => {
   const pages: PageLayout[] = useMemo(() => {
     const result: PageLayout[] = [];
     const pageSize = GRID.cols * GRID.rows;
+    const cardsToUse = printCards.length > 0 ? printCards : cards;
 
-    for (let i = 0; i < filteredCards.length; i += pageSize) {
-      const pageCards = filteredCards.slice(i, i + pageSize);
+    for (let i = 0; i < cardsToUse.length; i += pageSize) {
+      const pageCards = cardsToUse.slice(i, i + pageSize);
       while (pageCards.length < pageSize) {
         (pageCards as any).push(null);
       }
@@ -164,10 +168,11 @@ const App: React.FC = () => {
     }
 
     return result;
-  }, [filteredCards]);
+  }, [printCards, cards]);
 
   const handleExportPDF = async () => {
-    if (cards.length === 0) return;
+    const cardsToExport = printCards.length > 0 ? printCards : cards;
+    if (cardsToExport.length === 0) return;
     setIsExporting(true);
     try {
       await generatePDF(pages, scaleX, scaleY, paperFormat, foilMode);
@@ -177,7 +182,8 @@ const App: React.FC = () => {
   };
 
   const handleExportSVG = () => {
-    if (cards.length === 0) return;
+    const cardsToExport = printCards.length > 0 ? printCards : cards;
+    if (cardsToExport.length === 0) return;
     setIsExporting(true);
     try {
       generateSVG(pages, paperFormat);
@@ -734,58 +740,11 @@ const App: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Watermark Controls */}
-                  <div className="space-y-4 p-4 bg-slate-900/50 rounded-lg border border-blue-500/20">
-                    <label className="flex items-center gap-2 text-sm font-semibold text-slate-300 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={showWatermark}
-                        onChange={(e) => setShowWatermark(e.target.checked)}
-                        className="w-4 h-4 rounded accent-blue-500"
-                      />
-                      Mostrar Marca de Agua
-                    </label>
-
-                    {showWatermark && (
-                      <div className="space-y-4">
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <label className="text-xs font-semibold text-slate-400">Opacidad</label>
-                            <span className="text-xs font-mono bg-blue-600/30 text-blue-300 px-2 py-1 rounded">{watermarkOpacity}%</span>
-                          </div>
-                          <input
-                            type="range"
-                            min="10"
-                            max="85"
-                            value={watermarkOpacity}
-                            onChange={(e) => setWatermarkOpacity(Number(e.target.value))}
-                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                          />
-                        </div>
-
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <label className="text-xs font-semibold text-slate-400">Escala</label>
-                            <span className="text-xs font-mono bg-blue-600/30 text-blue-300 px-2 py-1 rounded">{watermarkScale}%</span>
-                          </div>
-                          <input
-                            type="range"
-                            min="60"
-                            max="150"
-                            value={watermarkScale}
-                            onChange={(e) => setWatermarkScale(Number(e.target.value))}
-                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
                   {/* Export Buttons */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       onClick={handleExportPDF}
-                      disabled={isExporting || cards.length === 0}
+                      disabled={isExporting || (printCards.length === 0 && cards.length === 0)}
                       className="flex items-center justify-center gap-2 px-4 sm:px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-lg transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                     >
                       <FileText size={18} />
@@ -793,7 +752,7 @@ const App: React.FC = () => {
                     </button>
                     <button
                       onClick={handleExportSVG}
-                      disabled={isExporting || cards.length === 0}
+                      disabled={isExporting || (printCards.length === 0 && cards.length === 0)}
                       className="flex items-center justify-center gap-2 px-4 sm:px-6 py-3 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold rounded-lg transition-all shadow-lg shadow-amber-500/30 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                     >
                       <Layout size={18} />
@@ -804,44 +763,64 @@ const App: React.FC = () => {
               )}
             </div>
 
-            {/* Card Manager - Mobile Optimized */}
+            {/* Print Card Selector - 3x3 Grid */}
             {cards.length > 0 && (
               <div className="bg-white/5 border border-blue-500/20 rounded-xl overflow-hidden">
-                <button
-                  onClick={() => setIsManagerOpen(!isManagerOpen)}
-                  className="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between bg-slate-900/50 hover:bg-slate-900/70 transition-colors border-b border-blue-500/20"
-                >
-                  <span className="font-bold text-white text-sm sm:text-base">Administrador ({cards.length})</span>
-                  <span className="text-xs text-blue-400">{isManagerOpen ? 'Ocultar' : 'Mostrar'}</span>
-                </button>
-
-                {isManagerOpen && (
-                  <div className="p-3 sm:p-4 max-h-96 overflow-y-auto">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
-                      {cards.map((card) => (
-                        <div
-                          key={card.id}
-                          className="relative group cursor-pointer"
-                          onClick={() => setSelectedCardId(card.id)}
-                        >
-                          <div className="w-full aspect-[63/88] rounded-lg overflow-hidden bg-slate-800 border border-slate-700 hover:border-blue-500/50">
-                            <img src={card.dataUrl} alt={card.name} className="w-full h-full object-cover" />
-                          </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeCard(card.id);
-                            }}
-                            className="absolute top-1 right-1 p-1 bg-red-600/80 hover:bg-red-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <Trash2 size={14} className="text-white" />
-                          </button>
-                          <p className="text-xs mt-1 sm:mt-2 text-slate-300 font-semibold truncate">{card.name}</p>
-                        </div>
-                      ))}
-                    </div>
+                <div className="px-4 sm:px-6 py-3 sm:py-4 bg-slate-900/50 border-b border-blue-500/20">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-bold text-white text-sm sm:text-base">Seleccionar Cartas para Imprimir ({printCards.length})</span>
+                    {printCards.length > 0 && (
+                      <button
+                        onClick={() => setPrintCards([])}
+                        className="text-xs text-amber-400 hover:text-amber-300 transition-colors font-semibold"
+                      >
+                        Limpiar Selección
+                      </button>
+                    )}
                   </div>
-                )}
+                  <p className="text-xs text-slate-400">Haz clic en las cartas para seleccionarlas (máximo 9 por página)</p>
+                </div>
+
+                <div className="p-3 sm:p-4 max-h-[600px] overflow-y-auto">
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                    {cards.map((card) => (
+                      <button
+                        key={card.id}
+                        onClick={() => {
+                          setPrintCards(prev => {
+                            const isSelected = prev.some(c => c.id === card.id);
+                            if (isSelected) {
+                              return prev.filter(c => c.id !== card.id);
+                            } else {
+                              // Max 9 cards (one page)
+                              if (prev.length < 9) {
+                                return [...prev, card];
+                              }
+                              return prev;
+                            }
+                          });
+                        }}
+                        className={`relative group aspect-[63/88] rounded-lg overflow-hidden transition-all border-2 ${
+                          printCards.some(c => c.id === card.id)
+                            ? 'border-blue-500 ring-2 ring-blue-400/50'
+                            : 'border-slate-700 hover:border-blue-500/50'
+                        }`}
+                      >
+                        <img src={card.dataUrl} alt={card.name} className="w-full h-full object-cover" />
+                        {printCards.some(c => c.id === card.id) && (
+                          <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
+                            <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-sm">
+                              ✓
+                            </div>
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  {cards.length === 0 && (
+                    <p className="text-center text-slate-400 text-sm py-8">No hay cartas disponibles</p>
+                  )}
+                </div>
               </div>
             )}
           </div>

@@ -83,11 +83,11 @@ export async function processCardImageWithBlackCorners(
         const boostContrast = opts.boostContrast ?? false;
 
         if (deepBlackThreshold > 0 || boostContrast) {
-          const contrastFactor = boostContrast ? 1.15 : 1.0;
+          const contrastFactor = boostContrast ? 1.25 : 1.0; // Increased from 1.15 for more aggressive contrast
           for (let i = 0; i < totalPixels; i++) {
             const idx = i * 4;
             const a = data[idx + 3];
-            
+
             // Skip fully transparent pixels in foil mode so transparency stays 100% clean
             if (opts.foilMode && a === 0) continue;
 
@@ -95,18 +95,34 @@ export async function processCardImageWithBlackCorners(
             let g = data[idx + 1];
             let b = data[idx + 2];
 
+            const maxVal = Math.max(r, g, b);
+            const minVal = Math.min(r, g, b);
+
             // Deep Black: Crush near-black/dark grey pixels to pure rich black #000000
             // This ensures maximum ink density on foil, blocking light reflections on borders & text
-            const maxVal = Math.max(r, g, b);
             if (maxVal <= deepBlackThreshold) {
               data[idx] = 0;
               data[idx + 1] = 0;
               data[idx + 2] = 0;
             } else if (boostContrast) {
-              // Apply subtle S-curve contrast boost
-              r = Math.min(255, Math.max(0, Math.round(((r / 255 - 0.5) * contrastFactor + 0.5) * 255)));
-              g = Math.min(255, Math.max(0, Math.round(((g / 255 - 0.5) * contrastFactor + 0.5) * 255)));
-              b = Math.min(255, Math.max(0, Math.round(((b / 255 - 0.5) * contrastFactor + 0.5) * 255)));
+              // For foil printing: enhance both blacks AND whites separately
+              // Push dark pixels darker, light pixels lighter for maximum contrast on holographic substrate
+              if (opts.foilMode && maxVal < 100) {
+                // Dark pixels: push even darker
+                r = Math.max(0, r - 30);
+                g = Math.max(0, g - 30);
+                b = Math.max(0, b - 30);
+              } else if (opts.foilMode && minVal > 200) {
+                // Light pixels: push to full white for clean highlights
+                r = 255;
+                g = 255;
+                b = 255;
+              } else {
+                // Apply S-curve contrast boost for mid-tones
+                r = Math.min(255, Math.max(0, Math.round(((r / 255 - 0.5) * contrastFactor + 0.5) * 255)));
+                g = Math.min(255, Math.max(0, Math.round(((g / 255 - 0.5) * contrastFactor + 0.5) * 255)));
+                b = Math.min(255, Math.max(0, Math.round(((b / 255 - 0.5) * contrastFactor + 0.5) * 255)));
+              }
 
               data[idx] = r;
               data[idx + 1] = g;
