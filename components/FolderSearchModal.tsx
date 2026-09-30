@@ -14,10 +14,12 @@ const FolderSearchModal: React.FC<FolderSearchModalProps> = ({
   onSearch,
   isSearching = false
 }) => {
-  const [step, setStep] = useState<'folder' | 'names'>('folder');
+  const [step, setStep] = useState<'folder' | 'names' | 'searching'>('folder');
   const [selectedFolder, setSelectedFolder] = useState<string>('');
   const [cardNames, setCardNames] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [searchProgress, setSearchProgress] = useState<number>(0);
+  const [searchStatus, setSearchStatus] = useState<string>('');
 
   if (!isVisible) return null;
 
@@ -65,11 +67,35 @@ const FolderSearchModal: React.FC<FolderSearchModalProps> = ({
     }
 
     try {
+      // Move to searching step and show progress
+      setStep('searching');
+      setSearchProgress(0);
+      setSearchStatus('Iniciando búsqueda...');
+
+      // Simulate progress updates
+      const progressInterval = setInterval(() => {
+        setSearchProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + Math.random() * 30;
+        });
+      }, 500);
+
       await onSearch(names, selectedFolder);
+
+      clearInterval(progressInterval);
+      setSearchProgress(100);
+      setSearchStatus('¡Búsqueda completada!');
+
       // Close modal after search completes
-      handleClose();
+      setTimeout(() => {
+        handleClose();
+      }, 500);
     } catch (err) {
       setError(`Error en búsqueda: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setStep('names');
     }
   };
 
@@ -153,6 +179,32 @@ const FolderSearchModal: React.FC<FolderSearchModalProps> = ({
                 </p>
               </div>
             </div>
+          ) : step === 'searching' ? (
+            // Step 3: Progress
+            <div className="space-y-6 flex flex-col items-center justify-center h-full">
+              <div className="text-center">
+                <Loader size={48} className="text-blue-600 animate-spin mx-auto mb-4" />
+                <h3 className="font-semibold text-gray-900 mb-2">Buscando cartas...</h3>
+                <p className="text-sm text-gray-600">{searchStatus}</p>
+              </div>
+
+              <div className="w-full max-w-sm">
+                <div className="mb-2 flex justify-between items-center">
+                  <p className="text-xs text-gray-600">Progreso de búsqueda</p>
+                  <p className="text-xs font-semibold text-blue-600">{Math.round(searchProgress)}%</p>
+                </div>
+                <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-blue-600 to-blue-500 transition-all duration-300 rounded-full"
+                    style={{ width: `${Math.min(searchProgress, 100)}%` }}
+                  />
+                </div>
+              </div>
+
+              <p className="text-xs text-gray-500 text-center">
+                Por favor espera mientras se buscan las imágenes en la carpeta...
+              </p>
+            </div>
           ) : (
             // Step 2: Card Names Input
             <div className="space-y-4">
@@ -182,50 +234,52 @@ Snapcaster Mage
         </div>
 
         {/* Buttons */}
-        <div className="flex gap-3 justify-end mt-6">
-          <button
-            onClick={handleClose}
-            className="px-6 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold transition-colors"
-          >
-            Cancelar
-          </button>
-
-          {step === 'folder' ? (
+        {step !== 'searching' && (
+          <div className="flex gap-3 justify-end mt-6">
             <button
-              onClick={handleNextStep}
-              disabled={!selectedFolder.trim()}
-              className="px-6 py-2 text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-semibold transition-colors"
+              onClick={handleClose}
+              className="px-6 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold transition-colors"
             >
-              Siguiente
+              Cancelar
             </button>
-          ) : (
-            <>
+
+            {step === 'folder' ? (
               <button
-                onClick={() => setStep('folder')}
-                className="px-6 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold transition-colors"
+                onClick={handleNextStep}
+                disabled={!selectedFolder.trim()}
+                className="px-6 py-2 text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-semibold transition-colors"
               >
-                Atrás
+                Siguiente
               </button>
-              <button
-                onClick={handleSearch}
-                disabled={isSearching}
-                className="px-6 py-2 text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-semibold transition-colors flex items-center gap-2"
-              >
-                {isSearching ? (
-                  <>
-                    <Loader size={18} className="animate-spin" />
-                    Buscando...
-                  </>
-                ) : (
-                  <>
-                    <Folder size={18} />
-                    Buscar Cartas
-                  </>
-                )}
-              </button>
-            </>
-          )}
-        </div>
+            ) : (
+              <>
+                <button
+                  onClick={() => setStep('folder')}
+                  className="px-6 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold transition-colors"
+                >
+                  Atrás
+                </button>
+                <button
+                  onClick={handleSearch}
+                  disabled={isSearching}
+                  className="px-6 py-2 text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-semibold transition-colors flex items-center gap-2"
+                >
+                  {isSearching ? (
+                    <>
+                      <Loader size={18} className="animate-spin" />
+                      Buscando...
+                    </>
+                  ) : (
+                    <>
+                      <Folder size={18} />
+                      Buscar Cartas
+                    </>
+                  )}
+                </button>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
