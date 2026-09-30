@@ -56,7 +56,7 @@ const CardPreview: React.FC<CardPreviewProps> = ({
       style={{
         ...(card?.isFoil && {
           background: [
-            'linear-gradient(135deg, #ff5ecb 0%, #7a5cff 18%, #2ec5ff 36%, #35f2b0 54%, #ffe45c 72%, #ff7a5c 88%, #ff5ecb 100%)',
+            'linear-gradient(135deg, rgba(255,92,203,0.25) 0%, rgba(122,92,255,0.25) 18%, rgba(46,197,255,0.25) 36%, rgba(53,242,176,0.25) 54%, rgba(255,228,92,0.25) 72%, rgba(255,122,92,0.25) 88%, rgba(255,92,203,0.25) 100%)',
             'linear-gradient(115deg, rgba(255,255,255,0.15) 0%, rgba(200,220,255,0.08) 50%, rgba(255,255,255,0.15) 100%)'
           ].join(', '),
           backgroundSize: '300% 300%, 200% 200%',
