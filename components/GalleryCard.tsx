@@ -81,6 +81,14 @@ const GalleryCard: React.FC<GalleryCardProps> = ({
           watermarkOpacity={watermarkOpacity}
           watermarkScale={watermarkScale}
           fillContainer={true}
+          foilShift={
+            isHovering
+              ? {
+                  x: Math.max(0, Math.min(100, 50 + tilt.y * 5)),
+                  y: Math.max(0, Math.min(100, 50 + tilt.x * 5)),
+                }
+              : undefined
+          }
         />
       </div>
 

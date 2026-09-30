@@ -13,6 +13,7 @@ interface CardPreviewProps {
   watermarkOpacity?: number;
   watermarkScale?: number;
   fillContainer?: boolean;
+  foilShift?: { x: number; y: number };
 }
 
 const CardPreview: React.FC<CardPreviewProps> = ({
@@ -22,7 +23,8 @@ const CardPreview: React.FC<CardPreviewProps> = ({
   showWatermark = true,
   watermarkOpacity = 35,
   watermarkScale = 100,
-  fillContainer = false
+  fillContainer = false,
+  foilShift
 }) => {
   const width = CARD.width * MM_TO_PX;
   const height = CARD.height * MM_TO_PX;
@@ -52,9 +54,14 @@ const CardPreview: React.FC<CardPreviewProps> = ({
       style={{
         ...(card?.isFoil && {
           background: [
-            'linear-gradient(115deg, transparent 20%, rgba(255,255,255,0.45) 32%, transparent 44%, rgba(255,255,255,0.3) 62%, transparent 74%)',
+            'linear-gradient(115deg, transparent 20%, rgba(255,255,255,0.55) 32%, transparent 44%, rgba(255,255,255,0.35) 62%, transparent 74%)',
             'linear-gradient(135deg, #ff5ecb 0%, #7a5cff 18%, #2ec5ff 36%, #35f2b0 54%, #ffe45c 72%, #ff7a5c 88%, #ff5ecb 100%)'
-          ].join(', ')
+          ].join(', '),
+          backgroundSize: '220% 220%, 300% 300%',
+          // Con mouse encima (galería) el holograma sigue el puntero; si no, se anima solo
+          ...(foilShift
+            ? { backgroundPosition: `${foilShift.x}% ${foilShift.y}%, ${foilShift.x}% ${foilShift.y}%` }
+            : { animation: 'foil-shift 7s ease-in-out infinite' })
         }),
         ...(fillContainer ? { width: '100%', aspectRatio: '63 / 88' } : { width: `${width}px`, height: `${height}px` })
       }}
@@ -63,6 +70,18 @@ const CardPreview: React.FC<CardPreviewProps> = ({
     >
       {card ? (
         <>
+          {card.isFoil && (
+            <style>{`
+              @keyframes foil-shift {
+                0%   { background-position: 0% 30%, 0% 50%; }
+                50%  { background-position: 100% 70%, 100% 50%; }
+                100% { background-position: 0% 30%, 0% 50%; }
+              }
+              @media (prefers-reduced-motion: reduce) {
+                [style*="foil-shift"] { animation: none !important; }
+              }
+            `}</style>
+          )}
           <img
             src={card.dataUrl}
             alt={card.name}
