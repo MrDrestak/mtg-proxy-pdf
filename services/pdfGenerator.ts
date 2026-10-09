@@ -8,10 +8,28 @@ export const generatePDF = async (
   scaleX: number = 1.0,
   scaleY: number = 1.0,
   paperFormat: PaperFormat = 'a4',
-  foilMode: boolean = false
+  foilMode: boolean = false,
+  includeCardBack: boolean = false
 ) => {
   const paper = PAPER_SIZES[paperFormat];
   const margin = getMargins(paperFormat);
+
+  // Pre-load card back image as data URL if needed
+  let cardBackDataUrl: string | null = null;
+  if (includeCardBack) {
+    try {
+      const response = await fetch('/card-back.png');
+      const blob = await response.blob();
+      cardBackDataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+      });
+    } catch (err) {
+      console.error('Failed to load card-back.png:', err);
+    }
+  }
 
   const doc = new jsPDF({
     orientation: 'portrait',
@@ -29,7 +47,7 @@ export const generatePDF = async (
 
       const col = cardIdx % GRID.cols;
       const row = Math.floor(cardIdx / GRID.cols);
-      
+
       const x = (margin.left + col * (CARD.width + GRID.spacing)) * scaleX;
       const y = (margin.top + row * (CARD.height + GRID.spacing)) * scaleY;
 
@@ -88,6 +106,57 @@ export const generatePDF = async (
       doc.line(0, y, x0, y); // Left margin starting right at paper left edge (0)
       doc.line(x3, y, paper.width, y); // Right margin running all the way to paper right edge
     });
+
+    // 5. Add Reverso Page if includeCardBack is enabled and cardBackDataUrl was loaded
+    if (includeCardBack && cardBackDataUrl) {
+      doc.addPage([paper.width, paper.height], 'portrait');
+
+      // Draw the card back image (3.3MB PNG with MTG reverso design)
+      // The image is placed as a full-page background for all 9 card slots
+      page.cards.forEach((card, cardIdx) => {
+        if (!card) return;
+
+        const col = cardIdx % GRID.cols;
+        const row = Math.floor(cardIdx / GRID.cols);
+
+        const x = (margin.left + col * (CARD.width + GRID.spacing)) * scaleX;
+        const y = (margin.top + row * (CARD.height + GRID.spacing)) * scaleY;
+
+        try {
+          doc.addImage(cardBackDataUrl, 'PNG', x, y, CARD.width * scaleX, CARD.height * scaleY, undefined, 'FAST');
+        } catch (err) {
+          console.error('Error adding reverso image:', err);
+          // Draw a placeholder gray background if image fails to add
+          doc.setFillColor(100, 100, 100);
+          doc.rect(x, y, CARD.width * scaleX, CARD.height * scaleY, 'F');
+        }
+      });
+
+      // Draw the same cutting guides for the reverso page
+      doc.setLineWidth(0.08);
+      doc.setDrawColor(160, 160, 160);
+
+      xs.forEach(x => {
+        doc.line(x, y0, x, y3);
+      });
+
+      ys.forEach(y => {
+        doc.line(x0, y, x3, y);
+      });
+
+      doc.setLineWidth(0.3);
+      doc.setDrawColor(220, 38, 38);
+
+      xs.forEach(x => {
+        doc.line(x, 0, x, y0);
+        doc.line(x, y3, x, paper.height);
+      });
+
+      ys.forEach(y => {
+        doc.line(0, y, x0, y);
+        doc.line(x3, y, paper.width, y);
+      });
+    }
   });
 
   const filename = paperFormat === 'a4' 

@@ -9,6 +9,7 @@ interface SheetPreviewModalProps {
   onExportPDF?: () => void;
   onClose: () => void;
   isVisible: boolean;
+  includeCardBack?: boolean;
 }
 
 const SheetPreviewModal: React.FC<SheetPreviewModalProps> = ({
@@ -17,7 +18,8 @@ const SheetPreviewModal: React.FC<SheetPreviewModalProps> = ({
   onEditOrder,
   onExportPDF,
   onClose,
-  isVisible
+  isVisible,
+  includeCardBack = false
 }) => {
   const [currentPage, setCurrentPage] = useState(0);
 
@@ -26,6 +28,8 @@ const SheetPreviewModal: React.FC<SheetPreviewModalProps> = ({
   const cardsPerSheet = 9;
   const orderedCards = cardsOrder.map(idx => cards[idx]).filter(Boolean);
   const totalSheets = Math.ceil(orderedCards.length / cardsPerSheet);
+  // If includeCardBack is enabled, double the total sheets (1 front + 1 back per sheet)
+  const totalPDFPages = includeCardBack ? totalSheets * 2 : totalSheets;
   const currentSheetCards = orderedCards.slice(
     currentPage * cardsPerSheet,
     (currentPage + 1) * cardsPerSheet
@@ -53,6 +57,11 @@ const SheetPreviewModal: React.FC<SheetPreviewModalProps> = ({
             <h2 className="text-2xl font-bold text-gray-900">Vista Previa de Hojas</h2>
             <p className="text-sm text-gray-600 mt-1">
               {orderedCards.length} cartas en {totalSheets} {totalSheets === 1 ? 'hoja' : 'hojas'}
+              {includeCardBack && (
+                <span className="ml-2 text-blue-600 font-semibold">
+                  → {totalPDFPages} páginas PDF (frente + reverso)
+                </span>
+              )}
             </p>
           </div>
           <button

@@ -80,6 +80,7 @@ const App: React.FC = () => {
   const [showFolderSearch, setShowFolderSearch] = useState(false);
   const [isFolderSearching, setIsFolderSearching] = useState(false);
   const [showPrintWorkflowInfo, setShowPrintWorkflowInfo] = useState(false);
+  const [includeCardBack, setIncludeCardBack] = useState(false);
 
   const scaleX = useMemo(() => {
     if (!useCompensation) return 1.0;
@@ -195,7 +196,7 @@ const App: React.FC = () => {
     if (cardsToExport.length === 0) return;
     setIsExporting(true);
     try {
-      await generatePDF(pages, scaleX, scaleY, paperFormat, foilMode);
+      await generatePDF(pages, scaleX, scaleY, paperFormat, foilMode, includeCardBack);
     } finally {
       setIsExporting(false);
     }
@@ -797,6 +798,19 @@ const App: React.FC = () => {
                           <p className="text-xs text-slate-500">Optimiza transparencias para papel foil</p>
                         </div>
                       </label>
+
+                      <label className="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg border border-slate-700 hover:border-blue-500/30 cursor-pointer transition-all">
+                        <input
+                          type="checkbox"
+                          checked={includeCardBack}
+                          onChange={(e) => setIncludeCardBack(e.target.checked)}
+                          className="w-4 h-4 rounded accent-blue-500"
+                        />
+                        <div>
+                          <p className="text-sm font-semibold text-slate-300">Incluir Reverso de Carta</p>
+                          <p className="text-xs text-slate-500">Agrega páginas de reverso para impresión doble cara</p>
+                        </div>
+                      </label>
                     </div>
                   </div>
 
@@ -1069,6 +1083,7 @@ const App: React.FC = () => {
         }}
         onClose={() => setShowSheetPreview(false)}
         isVisible={showSheetPreview}
+        includeCardBack={includeCardBack}
       />
 
       <PrintWorkflowInfo
