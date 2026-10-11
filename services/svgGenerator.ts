@@ -1,31 +1,63 @@
 
-import { PAPER_SIZES, CARD, GRID, getMargins, PaperFormat } from '../constants';
+import { CARD, GRID } from '../constants';
 import { PageLayout } from '../types';
 
-export const generateSVG = (pages: PageLayout[], paperFormat: PaperFormat = 'a4') => {
-  const paper = PAPER_SIZES[paperFormat];
-  const margin = getMargins(paperFormat);
-
-  // We generate one SVG per page as most cutting software expects single files or specific sizing
+export const generateSVG = (pages: PageLayout[]) => {
+  // Generate one SVG per page containing a 3x3 grid of cards
+  // Each card has real MTG dimensions (63mm × 88mm) with rounded corners
   pages.forEach((page, pageIdx) => {
-    const rects: string[] = [];
+    const cardRoundRadius = 1.8; // Rounded corner radius in mm (standard MTG card corner)
+    const padding = 5; // Small padding around the grid for safety margin
 
+    // Calculate total grid dimensions
+    const gridWidth = GRID.cols * CARD.width;
+    const gridHeight = GRID.rows * CARD.height;
+    const svgWidth = gridWidth + padding * 2;
+    const svgHeight = gridHeight + padding * 2;
+
+    const cardElements: string[] = [];
+
+    // Generate card slots with images
     page.cards.forEach((card, cardIdx) => {
-      if (!card) return;
-
       const col = cardIdx % GRID.cols;
       const row = Math.floor(cardIdx / GRID.cols);
-      
-      const x = margin.left + col * (CARD.width + GRID.spacing);
-      const y = margin.top + row * (CARD.height + GRID.spacing);
 
-      rects.push(`<rect x="${x}" y="${y}" width="${CARD.width}" height="${CARD.height}" fill="none" stroke="black" stroke-width="0.1" />`);
+      const x = padding + col * CARD.width;
+      const y = padding + row * CARD.height;
+
+      if (card) {
+        // Add image with rounded corners using clipPath
+        cardElements.push(
+          `<!-- Card ${cardIdx + 1}: ${card.name} -->`,
+          `<defs>`,
+          `  <clipPath id="cardClip_${cardIdx}">`,
+          `    <rect x="${x}" y="${y}" width="${CARD.width}" height="${CARD.height}" rx="${cardRoundRadius}" ry="${cardRoundRadius}" />`,
+          `  </clipPath>`,
+          `</defs>`,
+          `<image x="${x}" y="${y}" width="${CARD.width}" height="${CARD.height}" href="${card.dataUrl}" clip-path="url(#cardClip_${cardIdx})" />`
+        );
+      }
+
+      // Add rounded rectangle border (cut line)
+      cardElements.push(
+        `<rect x="${x}" y="${y}" width="${CARD.width}" height="${CARD.height}" rx="${cardRoundRadius}" ry="${cardRoundRadius}" fill="none" stroke="black" stroke-width="0.2" />`
+      );
     });
 
-    const svgContent = `
-<svg width="${paper.width}mm" height="${paper.height}mm" viewBox="0 0 ${paper.width} ${paper.height}" xmlns="http://www.w3.org/2000/svg">
-  <g id="CutLines">
-    ${rects.join('\n    ')}
+    const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="${svgWidth}mm" height="${svgHeight}mm" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <!-- MTG Proxy Card Grid - 3x3 Layout -->
+  <!-- Real card dimensions: ${CARD.width}mm × ${CARD.height}mm per card -->
+  <!-- Rounded corners: ${cardRoundRadius}mm radius -->
+  <defs>
+    <style>
+      .card-outline { stroke: black; stroke-width: 0.2; fill: none; }
+    </style>
+  </defs>
+
+  <!-- Card Grid -->
+  <g id="CardGrid">
+    ${cardElements.join('\n    ')}
   </g>
 </svg>`;
 
@@ -33,7 +65,7 @@ export const generateSVG = (pages: PageLayout[], paperFormat: PaperFormat = 'a4'
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `mtg-cut-lines-${paperFormat}-page-${pageIdx + 1}.svg`;
+    link.download = `mtg-cards-3x3-page-${pageIdx + 1}.svg`;
     link.click();
     URL.revokeObjectURL(url);
   });
