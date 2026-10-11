@@ -17,46 +17,30 @@ export const generateSVG = (pages: PageLayout[]) => {
 
     const cardElements: string[] = [];
 
-    // Generate card slots with images
+    // Generate card cutting outlines only (no images)
     page.cards.forEach((card, cardIdx) => {
+      if (!card) return;
+
       const col = cardIdx % GRID.cols;
       const row = Math.floor(cardIdx / GRID.cols);
 
       const x = padding + col * CARD.width;
       const y = padding + row * CARD.height;
 
-      if (card) {
-        // Add image with rounded corners using clipPath
-        cardElements.push(
-          `<!-- Card ${cardIdx + 1}: ${card.name} -->`,
-          `<defs>`,
-          `  <clipPath id="cardClip_${cardIdx}">`,
-          `    <rect x="${x}" y="${y}" width="${CARD.width}" height="${CARD.height}" rx="${cardRoundRadius}" ry="${cardRoundRadius}" />`,
-          `  </clipPath>`,
-          `</defs>`,
-          `<image x="${x}" y="${y}" width="${CARD.width}" height="${CARD.height}" href="${card.dataUrl}" clip-path="url(#cardClip_${cardIdx})" />`
-        );
-      }
-
-      // Add rounded rectangle border (cut line)
+      // Add rounded rectangle border (cut line) only
       cardElements.push(
         `<rect x="${x}" y="${y}" width="${CARD.width}" height="${CARD.height}" rx="${cardRoundRadius}" ry="${cardRoundRadius}" fill="none" stroke="black" stroke-width="0.2" />`
       );
     });
 
     const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
-<svg width="${svgWidth}mm" height="${svgHeight}mm" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-  <!-- MTG Proxy Card Grid - 3x3 Layout -->
+<svg width="${svgWidth}mm" height="${svgHeight}mm" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg">
+  <!-- MTG Proxy Card Grid - 3x3 Cutting Guide -->
   <!-- Real card dimensions: ${CARD.width}mm × ${CARD.height}mm per card -->
   <!-- Rounded corners: ${cardRoundRadius}mm radius -->
-  <defs>
-    <style>
-      .card-outline { stroke: black; stroke-width: 0.2; fill: none; }
-    </style>
-  </defs>
 
-  <!-- Card Grid -->
-  <g id="CardGrid">
+  <!-- Card Cutting Outlines -->
+  <g id="CuttingGuides" stroke="black" stroke-width="0.2" fill="none">
     ${cardElements.join('\n    ')}
   </g>
 </svg>`;
