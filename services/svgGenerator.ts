@@ -3,22 +3,22 @@ import { CARD, GRID } from '../constants';
 import { PageLayout } from '../types';
 
 export const generateSVG = (pages: PageLayout[]) => {
-  // Generate one SVG per page containing a 3x3 grid of cards
-  // Each card has real MTG dimensions (63mm × 88mm) with rounded corners
-  pages.forEach((page, pageIdx) => {
-    const cardRoundRadius = 2.5; // Rounded corner radius in mm
-    const padding = 5; // Small padding around the grid for safety margin
+  // Generate a single SVG with one 3x3 grid of cards
+  // Takes the first page (9 cards max) from the pages array
+  const cardRoundRadius = 2.5; // Rounded corner radius in mm
+  const padding = 5; // Small padding around the grid for safety margin
 
-    // Calculate total grid dimensions
-    const gridWidth = GRID.cols * CARD.width;
-    const gridHeight = GRID.rows * CARD.height;
-    const svgWidth = gridWidth + padding * 2;
-    const svgHeight = gridHeight + padding * 2;
+  // Calculate total grid dimensions
+  const gridWidth = GRID.cols * CARD.width;
+  const gridHeight = GRID.rows * CARD.height;
+  const svgWidth = gridWidth + padding * 2;
+  const svgHeight = gridHeight + padding * 2;
 
-    const cardElements: string[] = [];
+  const cardElements: string[] = [];
 
-    // Generate card cutting outlines only (no images)
-    page.cards.forEach((card, cardIdx) => {
+  // Generate card cutting outlines for the first page only
+  if (pages.length > 0) {
+    pages[0].cards.forEach((card, cardIdx) => {
       if (!card) return;
 
       const col = cardIdx % GRID.cols;
@@ -32,8 +32,9 @@ export const generateSVG = (pages: PageLayout[]) => {
         `<rect x="${x}" y="${y}" width="${CARD.width}" height="${CARD.height}" rx="${cardRoundRadius}" ry="${cardRoundRadius}" fill="none" stroke="black" stroke-width="0.2" />`
       );
     });
+  }
 
-    const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
+  const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="${svgWidth}mm" height="${svgHeight}mm" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg">
   <!-- MTG Proxy Card Grid - 3x3 Cutting Guide -->
   <!-- Real card dimensions: ${CARD.width}mm × ${CARD.height}mm per card -->
@@ -45,13 +46,11 @@ export const generateSVG = (pages: PageLayout[]) => {
   </g>
 </svg>`;
 
-    const blob = new Blob([svgContent], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `mtg-cards-3x3-page-${pageIdx + 1}.svg`;
-    link.click();
-    URL.revokeObjectURL(url);
-  });
+  const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `mtg-cards-3x3.svg`;
+  link.click();
+  URL.revokeObjectURL(url);
 };
-
