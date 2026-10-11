@@ -6,7 +6,7 @@ export const generateSVG = (pages: PageLayout[]) => {
   // Generate one SVG per page containing a 3x3 grid of cards
   // Each card has real MTG dimensions (63mm × 88mm) with rounded corners
   pages.forEach((page, pageIdx) => {
-    const cardRoundRadius = 1.8; // Rounded corner radius in mm (standard MTG card corner)
+    const cardRoundRadius = 2.5; // Rounded corner radius in mm
     const padding = 5; // Small padding around the grid for safety margin
 
     // Calculate total grid dimensions
