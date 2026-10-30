@@ -172,7 +172,7 @@ const CardManagerPopup: React.FC<CardManagerPopupProps> = ({
                   <div className="flex gap-2 flex-shrink-0">
                     <button
                       onClick={() => handleToggleZoom(card.id)}
-                      title={card.printZoom ? 'Zoom 10%: activado' : 'Zoom 10%: desactivado'}
+                      title={card.printZoom ? 'Zoom: activado' : 'Zoom: desactivado'}
                       aria-pressed={!!card.printZoom}
                       className={`p-2 rounded transition-colors ${
                         card.printZoom
@@ -225,7 +225,7 @@ const CardManagerPopup: React.FC<CardManagerPopupProps> = ({
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => handleToggleZoom(card.id)}
-                            title={card.printZoom ? 'Zoom 10%: activado' : 'Zoom 10%: desactivado'}
+                            title={card.printZoom ? 'Zoom: activado' : 'Zoom: desactivado'}
                             aria-pressed={!!card.printZoom}
                             className={`p-1 rounded ${
                               card.printZoom

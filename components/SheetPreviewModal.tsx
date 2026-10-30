@@ -83,6 +83,7 @@ const SheetPreviewModal: React.FC<SheetPreviewModalProps> = ({
                   <div
                     key={idx}
                     className="aspect-[3/4] bg-white rounded border border-gray-300 overflow-hidden group relative shadow"
+                    style={card?.printZoom ? { backgroundColor: '#000' } : undefined}
                   >
                     {card ? (
                       <>
