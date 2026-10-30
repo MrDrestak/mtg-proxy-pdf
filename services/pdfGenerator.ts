@@ -60,7 +60,17 @@ export const generatePDF = async (
 
       // Format: in foilMode, use PNG format so jsPDF embeds RGBA transparency with mask/alpha channel
       const imageFormat = (foilMode || card.dataUrl.startsWith('data:image/png')) ? 'PNG' : 'JPEG';
-      doc.addImage(card.dataUrl, imageFormat, x, y, CARD.width * scaleX, CARD.height * scaleY, undefined, 'FAST');
+
+      // Optional 10% zoom, grown from the card center. The black backing and cut
+      // lines keep the card size; only the image is enlarged.
+      const zoom = card.printZoom ? 1.1 : 1.0;
+      const cardW = CARD.width * scaleX;
+      const cardH = CARD.height * scaleY;
+      const imgW = cardW * zoom;
+      const imgH = cardH * zoom;
+      const imgX = x - (imgW - cardW) / 2;
+      const imgY = y - (imgH - cardH) / 2;
+      doc.addImage(card.dataUrl, imageFormat, imgX, imgY, imgW, imgH, undefined, 'FAST');
     });
 
     // 2. Define exact grid line coordinates

@@ -14,6 +14,7 @@ export interface CardImage {
   notes?: string;
   isFoil?: boolean;
   sourcePath?: string;  // Para Modo 2 (búsqueda en carpeta)
+  printZoom?: boolean;  // Print tab only: draw the front image 10% larger, centered
 }
 
 export interface SearchResult {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GripVertical, Copy, Trash2, Grid3x3, List } from 'lucide-react';
+import { GripVertical, Copy, Trash2, Grid3x3, List, ZoomIn } from 'lucide-react';
 import { CardImage } from '../types';
 
 interface CardManagerPopupProps {
@@ -8,6 +8,7 @@ interface CardManagerPopupProps {
   onUpdateOrder: (newOrder: number[]) => void;
   onDuplicate: (cardId: string) => void;
   onDelete: (cardId: string) => void;
+  onToggleZoom: (cardId: string) => void;
   onClose: () => void;
   isVisible: boolean;
 }
@@ -20,6 +21,7 @@ const CardManagerPopup: React.FC<CardManagerPopupProps> = ({
   onUpdateOrder,
   onDuplicate,
   onDelete,
+  onToggleZoom,
   onClose,
   isVisible
 }) => {
@@ -74,6 +76,10 @@ const CardManagerPopup: React.FC<CardManagerPopupProps> = ({
 
   const handleDelete = (cardId: string) => {
     onDelete(cardId);
+  };
+
+  const handleToggleZoom = (cardId: string) => {
+    onToggleZoom(cardId);
   };
 
   return (
@@ -165,6 +171,18 @@ const CardManagerPopup: React.FC<CardManagerPopupProps> = ({
 
                   <div className="flex gap-2 flex-shrink-0">
                     <button
+                      onClick={() => handleToggleZoom(card.id)}
+                      title={card.printZoom ? 'Zoom 10%: activado' : 'Zoom 10%: desactivado'}
+                      aria-pressed={!!card.printZoom}
+                      className={`p-2 rounded transition-colors ${
+                        card.printZoom
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+                      }`}
+                    >
+                      <ZoomIn size={18} />
+                    </button>
+                    <button
                       onClick={() => handleDuplicate(card.id)}
                       title="Duplicar carta"
                       className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
@@ -205,6 +223,18 @@ const CardManagerPopup: React.FC<CardManagerPopupProps> = ({
                           Pos: {gridPage * cardsPerPage + idx + 1}
                         </div>
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => handleToggleZoom(card.id)}
+                            title={card.printZoom ? 'Zoom 10%: activado' : 'Zoom 10%: desactivado'}
+                            aria-pressed={!!card.printZoom}
+                            className={`p-1 rounded ${
+                              card.printZoom
+                                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+                            }`}
+                          >
+                            <ZoomIn size={14} />
+                          </button>
                           <button
                             onClick={() => handleDuplicate(card.id)}
                             title="Duplicar"

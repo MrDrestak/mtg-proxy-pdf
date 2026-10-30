@@ -535,6 +535,12 @@ const App: React.FC = () => {
     }
   };
 
+  const handleToggleZoom = (cardId: string) => {
+    setPrintCards(prev =>
+      prev.map(c => (c.id === cardId ? { ...c, printZoom: !c.printZoom } : c))
+    );
+  };
+
   const handleDeleteCard = (cardId: string) => {
     const indexToRemove = printCards.findIndex(c => c.id === cardId);
     if (indexToRemove !== -1) {
@@ -1065,6 +1071,7 @@ const App: React.FC = () => {
         onUpdateOrder={handleUpdateCardOrder}
         onDuplicate={handleDuplicateCard}
         onDelete={handleDeleteCard}
+        onToggleZoom={handleToggleZoom}
         onClose={() => setShowCardManager(false)}
         isVisible={showCardManager}
       />
