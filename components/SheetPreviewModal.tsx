@@ -81,14 +81,18 @@ const SheetPreviewModal: React.FC<SheetPreviewModalProps> = ({
                 {currentSheetCards.map((card, idx) => (
                   <div
                     key={idx}
-                    className="aspect-[3/4] bg-white rounded border border-gray-300 overflow-hidden group relative shadow"
+                    className={`aspect-[3/4] bg-white rounded border border-gray-300 ${
+                      card?.printZoom ? '' : 'overflow-hidden'
+                    } group relative shadow`}
                   >
                     {card ? (
                       <>
+                        {/* Zoomed cards spill past the cell, like the printed image does */}
                         <img
                           src={card.dataUrl}
                           alt={card.name}
                           className="w-full h-full object-cover"
+                          style={card.printZoom ? { transform: 'scale(1.1)' } : undefined}
                         />
                         {/* Name tooltip on hover */}
                         <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-start p-2">
