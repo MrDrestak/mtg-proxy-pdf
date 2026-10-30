@@ -36,10 +36,10 @@ export const CARD = {
 };
 
 // Print zoom for individual cards (Print tab toggle), applied from the card center and
-// clipped to the card slot. Sized so a card with a thick black border (Sol Ring scan,
-// ~8.7% sides / ~6.5% top) matches the Natural Order border (~4% sides / ~2.5% top).
-// Sides grow 11.3%, top and bottom grow 9.1%.
-export const PRINT_ZOOM = { x: 1.113, y: 1.091 };
+// clipped to the card slot. Sized so the Sol Ring scan (~8.7% sides, ~6.5% top and
+// bottom) shows the same black border as the Ghost scan (4.0% sides, 2.9% top).
+// Sides grow 11.3%; top and bottom both grow 8.2% (the top value is reused for bottom).
+export const PRINT_ZOOM = { x: 1.113, y: 1.082 };
 
 export const GRID = {
   cols: 3,
