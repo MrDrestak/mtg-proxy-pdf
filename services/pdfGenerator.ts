@@ -70,7 +70,16 @@ export const generatePDF = async (
       const imgH = cardH * zoom;
       const imgX = x - (imgW - cardW) / 2;
       const imgY = y - (imgH - cardH) / 2;
-      doc.addImage(card.dataUrl, imageFormat, imgX, imgY, imgW, imgH, undefined, 'FAST');
+
+      if (card.printZoom) {
+        // Mask the enlarged image to its own card slot so it can't spill onto neighbors
+        doc.saveGraphicsState();
+        doc.rect(x, y, cardW, cardH, null).clip().discardPath();
+        doc.addImage(card.dataUrl, imageFormat, imgX, imgY, imgW, imgH, undefined, 'FAST');
+        doc.restoreGraphicsState();
+      } else {
+        doc.addImage(card.dataUrl, imageFormat, x, y, cardW, cardH, undefined, 'FAST');
+      }
     });
 
     // 2. Define exact grid line coordinates
