@@ -35,6 +35,10 @@ export const CARD = {
   height: 88,
 };
 
+// Print zoom for individual cards (Print tab toggle).
+// Sides grow 10%, top and bottom grow 9.5%, always from the card center.
+export const PRINT_ZOOM = { x: 1.1, y: 1.095 };
+
 export const GRID = {
   cols: 3,
   rows: 3,

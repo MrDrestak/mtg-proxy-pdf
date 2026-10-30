@@ -1,6 +1,6 @@
 
 import { jsPDF } from 'jspdf';
-import { PAPER_SIZES, CARD, GRID, getMargins, PaperFormat } from '../constants';
+import { PAPER_SIZES, CARD, GRID, PRINT_ZOOM, getMargins, PaperFormat } from '../constants';
 import { PageLayout } from '../types';
 
 export const generatePDF = async (
@@ -63,11 +63,10 @@ export const generatePDF = async (
 
       // Optional 10% zoom, grown from the card center. The black backing and cut
       // lines keep the card size; only the image is enlarged.
-      const zoom = card.printZoom ? 1.1 : 1.0;
       const cardW = CARD.width * scaleX;
       const cardH = CARD.height * scaleY;
-      const imgW = cardW * zoom;
-      const imgH = cardH * zoom;
+      const imgW = cardW * (card.printZoom ? PRINT_ZOOM.x : 1.0);
+      const imgH = cardH * (card.printZoom ? PRINT_ZOOM.y : 1.0);
       const imgX = x - (imgW - cardW) / 2;
       const imgY = y - (imgH - cardH) / 2;
 

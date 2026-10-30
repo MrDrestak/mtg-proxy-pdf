@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Edit2, FileText } from 'lucide-react';
 import { CardImage } from '../types';
+import { PRINT_ZOOM } from '../constants';
 
 interface SheetPreviewModalProps {
   cards: CardImage[];
@@ -90,7 +91,11 @@ const SheetPreviewModal: React.FC<SheetPreviewModalProps> = ({
                           src={card.dataUrl}
                           alt={card.name}
                           className="w-full h-full object-cover"
-                          style={card.printZoom ? { transform: 'scale(1.1)' } : undefined}
+                          style={
+                            card.printZoom
+                              ? { transform: `scale(${PRINT_ZOOM.x}, ${PRINT_ZOOM.y})` }
+                              : undefined
+                          }
                         />
                         {/* Name tooltip on hover */}
                         <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-start p-2">
