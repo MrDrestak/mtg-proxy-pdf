@@ -82,7 +82,7 @@ const SheetPreviewModal: React.FC<SheetPreviewModalProps> = ({
                 {currentSheetCards.map((card, idx) => (
                   <div
                     key={idx}
-                    className="aspect-[3/4] bg-white rounded border border-gray-300 overflow-hidden group relative shadow"
+                    className="aspect-[63/88] bg-white rounded border border-gray-300 overflow-hidden group relative shadow"
                   >
                     {card ? (
                       <>
@@ -90,7 +90,7 @@ const SheetPreviewModal: React.FC<SheetPreviewModalProps> = ({
                         <img
                           src={card.dataUrl}
                           alt={card.name}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-fill"
                           style={
                             card.printZoom
                               ? { transform: `scale(${PRINT_ZOOM.x}, ${PRINT_ZOOM.y})` }
