@@ -35,11 +35,11 @@ export const CARD = {
   height: 88,
 };
 
-// Print scale for individual cards (Print tab toggle), applied from the card center.
-// Values below 1 shrink the art so the black backing shows around it, matching the
-// black border of the Sol Ring scan: sides 10% smaller, top and bottom 8.5% smaller.
-// Values above 1 would crop the black border away.
-export const PRINT_ZOOM = { x: 0.9, y: 0.915 };
+// Print zoom for individual cards (Print tab toggle), applied from the card center and
+// clipped to the card slot. Sized so a card with a thick black border (Sol Ring scan,
+// ~8.7% sides / ~6.5% top) matches the Natural Order border (~4% sides / ~2.5% top).
+// Sides grow 11.3%, top and bottom grow 9.1%.
+export const PRINT_ZOOM = { x: 1.113, y: 1.091 };
 
 export const GRID = {
   cols: 3,
